@@ -267,8 +267,8 @@ class TestToggleHole:
         assert data["par"] is True
         assert data["birdie"] is False
 
-    def test_toggle_off(self, client, db_path, user_id):
-        holes = {str(i): {"par": True, "birdie": True} for i in range(1, 19)}
+    def test_toggle_par_off_when_no_birdie(self, client, db_path, user_id):
+        holes = {str(i): {"par": True, "birdie": False} for i in range(1, 19)}
         db = __import__("sqlite3").connect(str(db_path))
         db.execute(
             "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status) VALUES (?, ?, ?, ?, 'active')",
@@ -285,7 +285,61 @@ class TestToggleHole:
         data = resp.get_json()
         assert data["par"] is False
 
-    def test_toggle_triggers_victory(self, client, db_path, user_id):
+    def test_toggle_birdie_sets_par_too(self, client, db_path, user_id):
+        holes = {str(i): {"par": False, "birdie": False} for i in range(1, 19)}
+        db = __import__("sqlite3").connect(str(db_path))
+        db.execute(
+            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status) VALUES (?, ?, ?, ?, 'active')",
+            ("par_bingo", "Birdie Sets Par", 0, user_id),
+        )
+        db.execute("INSERT INTO plugin_minigames_players (game_id, user_id) VALUES (?, ?)", (1, user_id))
+        db.execute("INSERT INTO plugin_minigames_states (game_id, user_id, state_json) VALUES (?, ?, ?)",
+                    (1, user_id, json.dumps({"holes": holes})))
+        db.commit()
+        db.close()
+
+        resp = client.post("/minigames/1/toggle", data={"hole_number": "1", "type": "birdie"})
+        data = resp.get_json()
+        assert data["birdie"] is True
+        assert data["par"] is True
+
+    def test_toggle_par_does_nothing_when_birdie_on(self, client, db_path, user_id):
+        holes = {str(i): {"par": True, "birdie": True} for i in range(1, 19)}
+        db = __import__("sqlite3").connect(str(db_path))
+        db.execute(
+            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status) VALUES (?, ?, ?, ?, 'active')",
+            ("par_bingo", "Par Noop", 0, user_id),
+        )
+        db.execute("INSERT INTO plugin_minigames_players (game_id, user_id) VALUES (?, ?)", (1, user_id))
+        db.execute("INSERT INTO plugin_minigames_states (game_id, user_id, state_json) VALUES (?, ?, ?)",
+                    (1, user_id, json.dumps({"holes": holes})))
+        db.commit()
+        db.close()
+
+        resp = client.post("/minigames/1/toggle", data={"hole_number": "1", "type": "par"})
+        data = resp.get_json()
+        assert data["par"] is True
+        assert data["birdie"] is True
+
+    def test_toggle_birdie_off_clears_par_too(self, client, db_path, user_id):
+        holes = {str(i): {"par": True, "birdie": True} for i in range(1, 19)}
+        db = __import__("sqlite3").connect(str(db_path))
+        db.execute(
+            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status) VALUES (?, ?, ?, ?, 'active')",
+            ("par_bingo", "Birdie Clears Par", 0, user_id),
+        )
+        db.execute("INSERT INTO plugin_minigames_players (game_id, user_id) VALUES (?, ?)", (1, user_id))
+        db.execute("INSERT INTO plugin_minigames_states (game_id, user_id, state_json) VALUES (?, ?, ?)",
+                    (1, user_id, json.dumps({"holes": holes})))
+        db.commit()
+        db.close()
+
+        resp = client.post("/minigames/1/toggle", data={"hole_number": "1", "type": "birdie"})
+        data = resp.get_json()
+        assert data["birdie"] is False
+        assert data["par"] is False
+
+    def test_toggle_triggers_victory_on_par(self, client, db_path, user_id):
         holes = {str(i): {"par": True, "birdie": True} for i in range(1, 18)}
         holes["18"] = {"par": False, "birdie": False}
         db = __import__("sqlite3").connect(str(db_path))
@@ -301,11 +355,7 @@ class TestToggleHole:
 
         resp = client.post("/minigames/1/toggle", data={"hole_number": "18", "type": "par"})
         data = resp.get_json()
-        assert data["victory"] is False
-
-        resp2 = client.post("/minigames/1/toggle", data={"hole_number": "18", "type": "birdie"})
-        data2 = resp2.get_json()
-        assert data2["victory"] is True
+        assert data["victory"] is True
 
     def test_toggle_returns_counts(self, client, db_path, user_id):
         holes = {str(i): {"par": True if i <= 5 else False, "birdie": False} for i in range(1, 19)}

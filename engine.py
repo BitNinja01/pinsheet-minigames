@@ -73,7 +73,7 @@ def _strokes_received(course_handicap: int, hole_index: int) -> int:
 class ParBingoEngine(GameEngine):
     type_id = "par_bingo"
     display_name = "Par Bingo"
-    description = "Cross off pars and birdies on your 18-hole card. First to fill it wins the pot."
+    description = "Cross off pars on your 18-hole card. Birdies fill in too. First to fill the card wins the pot."
     min_players = 2
     max_players = 8
     duration = "Multi-round"
@@ -139,7 +139,7 @@ class ParBingoEngine(GameEngine):
     def check_victory(self, game: dict, player_state: dict) -> bool:
         holes = player_state.get("holes", {})
         for h_data in holes.values():
-            if not h_data.get("par") or not h_data.get("birdie"):
+            if not h_data.get("par"):
                 return False
         return True
 

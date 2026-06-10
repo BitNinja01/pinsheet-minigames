@@ -290,12 +290,25 @@ class TestParBingoEngineCheckVictory:
         state = engine.create_state({})
         for h in state["holes"].values():
             h["par"] = True
-            h["birdie"] = True
         assert engine.check_victory({}, state) is True
+
+    def test_pars_only_no_birdies_is_victory(self):
+        engine = ParBingoEngine()
+        state = engine.create_state({})
+        for h in state["holes"].values():
+            h["par"] = True
+        assert engine.check_victory({}, state) is True
+
+    def test_birdies_only_no_par_is_not_victory(self):
+        engine = ParBingoEngine()
+        state = engine.create_state({})
+        for h in state["holes"].values():
+            h["birdie"] = True
+        assert engine.check_victory({}, state) is False
 
     def test_partial_holes_is_victory_when_all_present_complete(self):
         engine = ParBingoEngine()
-        state = {"holes": {"1": {"par": True, "birdie": True}}}
+        state = {"holes": {"1": {"par": True}}}
         assert engine.check_victory({}, state) is True
 
 
@@ -326,15 +339,17 @@ class TestParBingoEnginePrizeBreakdown:
         assert result[2] == -10 - 18
         assert result[3] == -10 - 18
 
-    def test_no_winner_without_both_par_and_birdie(self):
+    def test_all_pars_no_birdies_is_win(self):
         engine = ParBingoEngine()
         all_pars = {str(i): {"par": True, "birdie": False} for i in range(1, 19)}
+        loser = {str(i): {"par": False, "birdie": False} for i in range(1, 19)}
         states = [
             {"user_id": 1, "state": {"holes": all_pars}},
-            {"user_id": 2, "state": {"holes": all_pars}},
+            {"user_id": 2, "state": {"holes": loser}},
         ]
         result = engine.prize_breakdown({"buy_in": 5}, states)
-        assert result == {}
+        assert result[1] == (2 - 1) * (5 + 0)
+        assert result[2] == -5 - 0
 
     def test_first_winner_in_list_wins(self):
         engine = ParBingoEngine()

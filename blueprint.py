@@ -79,11 +79,11 @@ def _get_player_states(game_id: int, db_path: Path) -> list[dict]:
            JOIN plugin_minigames_players p ON p.game_id = s.game_id AND p.user_id = s.user_id
            JOIN users u ON u.id = p.user_id
            WHERE s.game_id = ?
-           ORDER BY (
-               SELECT COUNT(*)
-               FROM json_each(s.state_json, '$.holes')
-               WHERE json_extract(value, '$.par') = 1 AND json_extract(value, '$.birdie') = 1
-           ) DESC""",
+            ORDER BY (
+                SELECT COUNT(*)
+                FROM json_each(s.state_json, '$.holes')
+                WHERE json_extract(value, '$.par') = 1
+            ) DESC""",
         (game_id,),
     ).fetchall()
     db.close()
@@ -477,7 +477,14 @@ def toggle_hole(id):
 
     state = json.loads(state_row["state_json"])
     holes = state.get("holes", {})
-    holes[hole_number][toggle_type] = not holes[hole_number][toggle_type]
+    hole = holes[hole_number]
+    if toggle_type == "birdie":
+        new_val = not hole["birdie"]
+        hole["birdie"] = new_val
+        hole["par"] = new_val
+    elif toggle_type == "par":
+        if not hole["birdie"]:
+            hole["par"] = not hole["par"]
 
     db.execute(
         "UPDATE plugin_minigames_states SET state_json = ?, updated_at = datetime('now') WHERE game_id = ? AND user_id = ?",
