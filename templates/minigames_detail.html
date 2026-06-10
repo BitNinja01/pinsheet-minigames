@@ -253,7 +253,7 @@
           <span style="font-size: 22px; font-weight: 200; font-family: var(--ps-font-display); color: var(--ink-3);">{{ loop.index }}</span>
           <div>
             <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
-            <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}p · {{ ps.birdies }}b</div>
+            <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}P · {{ ps.birdies }}B</div>
           </div>
           {% set par_only = ps.pars - ps.birdies %}
           <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
@@ -261,8 +261,8 @@
               <span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>
             </div>
             <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); align-items: center; justify-content: center;{% if ps.birdies == 0 %}display:none{% else %}display:flex{% endif %};">
-              <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">
-                {% if ps.birdies >= 2 %}{{ ps.birdies }}b{% elif ps.pars >= 3 %}{{ ps.pars }}p{% endif %}
+              <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em; text-transform: uppercase;">
+                {% if ps.birdies >= 2 %}{{ ps.birdies }}B{% elif ps.pars >= 3 %}{{ ps.pars }}P{% endif %}
               </span>
             </div>
           </div>
@@ -342,7 +342,7 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
       if (raceRow) {
         var pp = data.pars, bb = data.birdies, po = pp - bb, tt = pp;
         var s = raceRow.querySelector('.race-stats');
-        if (s) s.textContent = pp + 'p \u00b7 ' + bb + 'b';
+        if (s) s.textContent = pp + 'P \u00b7 ' + bb + 'B';
         var pb = raceRow.querySelector('.race-par-bar');
         if (pb) {
           pb.style.width = Math.max(0, (po / 18 * 100)) + '%';
@@ -360,7 +360,7 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
         }
         var bl = raceRow.querySelector('.race-birdie-label');
         if (bl) {
-          bl.textContent = bb >= 2 ? bb + 'b' : (pp >= 3 ? pp + 'p' : '');
+          bl.textContent = bb >= 2 ? bb + 'B' : (pp >= 3 ? pp + 'P' : '');
           bl.style.display = (bb >= 2 || (bb > 0 && pp >= 3)) ? '' : 'none';
         }
         var te = raceRow.querySelector('.race-total');
