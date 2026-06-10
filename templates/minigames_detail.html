@@ -253,7 +253,7 @@
           <span style="font-size: 22px; font-weight: 200; font-family: var(--ps-font-display); color: var(--ink-3);">{{ loop.index }}</span>
           <div>
             <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
-            <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}P · {{ ps.birdies }}B</div>
+            </div>
           </div>
           {% set par_only = ps.pars - ps.birdies %}
           <div style="height: 24px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
@@ -341,8 +341,6 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
       var raceRow = document.querySelector('[data-user-id="' + USER_ID + '"]');
       if (raceRow) {
         var pp = data.pars, bb = data.birdies, po = pp - bb, tt = pp;
-        var s = raceRow.querySelector('.race-stats');
-        if (s) s.textContent = pp + 'P \u00b7 ' + bb + 'B';
         var pb = raceRow.querySelector('.race-par-bar');
         if (pb) {
           pb.style.width = Math.max(0, (po / 18 * 100)) + '%';
