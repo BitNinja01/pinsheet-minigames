@@ -45,6 +45,21 @@ def _get_games_for_user(user_id: int, db_path: Path, status: str | None = None) 
     return [dict(r) for r in rows]
 
 
+def _get_all_active_games(db_path: Path) -> list[dict]:
+    db = sqlite3.connect(str(db_path))
+    db.row_factory = sqlite3.Row
+    rows = db.execute(
+        """SELECT g.*, COUNT(DISTINCT p.id) as player_count
+           FROM plugin_minigames_games g
+           LEFT JOIN plugin_minigames_players p ON p.game_id = g.id
+           WHERE g.status = 'active'
+           GROUP BY g.id
+           ORDER BY g.created_at DESC""",
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+
 def _is_player(game_id: int, user_id: int, db_path: Path) -> bool:
     db = sqlite3.connect(str(db_path))
     row = db.execute(
@@ -123,17 +138,15 @@ def dashboard():
     uid = view_user["id"]
     dbp = _db_path()
 
-    active = _get_games_for_user(uid, dbp, "active")
-    lobby = _get_games_for_user(uid, dbp, "lobby")
+    active_games = _get_all_active_games(dbp)
     completed = _get_games_for_user(uid, dbp, "complete")
     game_types = get_available_types()
 
     return render_template(
         "minigames_dashboard.html",
         **base_context(
-            active_games=active,
-            lobby_games=lobby,
-            completed_games=completed,
+            active_games=active_games,
+            user_id=uid,
             game_types=game_types,
             current_page="minigames",
         ),

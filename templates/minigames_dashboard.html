@@ -88,8 +88,7 @@
   border-bottom: 1px solid var(--rule);
 }
 .minigames-body .game-type-row:last-child { border-bottom: none; }
-a.game-card-link { text-decoration: none; color: inherit; display: block; }
-a.game-card-link:hover { text-decoration: none; }
+
 </style>
 
 <div class="minigames-body">
@@ -116,28 +115,36 @@ a.game-card-link:hover { text-decoration: none; }
       {% if active_games %}
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
         {% for g in active_games %}
-        <a href="{{ url_for('minigames.game_detail', id=g.id) }}" class="game-card-link">
-          <div class="game-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div class="ey">{{ g.game_type.replace('_', ' ') }}</div>
-              <div style="display: flex; gap: 6px;">
-                <span class="chip mint">Active</span>
-              </div>
-            </div>
-            <div>
-              <h2>{{ g.name }}</h2>
-              <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
-                {{ g.player_count }} players{% if g.buy_in %} · ${{ g.buy_in }} buy-in{% endif %}
-              </div>
-            </div>
-            <div>
-              <div class="ey" style="margin-bottom: 4px;">Pot</div>
-              <div class="hero-num" style="font-size: 48px;">
-                <span style="color: var(--ink-3);">$</span>{{ g.buy_in * g.player_count }}
-              </div>
+        <div class="game-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="ey">{{ g.game_type.replace('_', ' ') }}</div>
+            <div style="display: flex; gap: 6px;">
+              <span class="chip mint">Active</span>
             </div>
           </div>
-        </a>
+          <div>
+            <h2>{{ g.name }}</h2>
+            <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
+              {{ g.player_count }} players{% if g.buy_in %} · ${{ g.buy_in }} buy-in{% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="ey" style="margin-bottom: 4px;">Pot</div>
+            <div class="hero-num" style="font-size: 48px;">
+              <span style="color: var(--ink-3);">$</span>{{ g.buy_in * g.player_count }}
+            </div>
+          </div>
+          <div style="margin-top: 8px;">
+            {% if g.host_user_id == user_id %}
+            <a href="{{ url_for('minigames.game_detail', id=g.id) }}" class="btn" style="font-size: 10px; padding: 6px 12px; text-decoration: none;">View</a>
+            {% else %}
+            <form method="POST" action="{{ url_for('minigames.join_game', id=g.id) }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn" style="font-size: 10px; padding: 6px 12px;">Join</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
         {% endfor %}
       </div>
       {% else %}
