@@ -262,7 +262,7 @@
             </div>
             <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); align-items: center; justify-content: center;{% if ps.birdies == 0 %}display:none{% else %}display:flex{% endif %};">
               <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em; text-transform: uppercase;">
-                {% if ps.birdies >= 2 %}{{ ps.birdies }}B{% elif ps.pars >= 3 %}{{ ps.pars }}P{% endif %}
+                {% if ps.birdies >= 1 %}{{ ps.birdies }}B{% elif ps.pars >= 3 %}{{ ps.pars }}P{% endif %}
               </span>
             </div>
           </div>
@@ -360,7 +360,7 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
         }
         var bl = raceRow.querySelector('.race-birdie-label');
         if (bl) {
-          bl.textContent = bb >= 2 ? bb + 'B' : (pp >= 3 ? pp + 'P' : '');
+          bl.textContent = bb >= 1 ? bb + 'B' : (pp >= 3 ? pp + 'P' : '');
           bl.style.display = (bb >= 2 || (bb > 0 && pp >= 3)) ? '' : 'none';
         }
         var te = raceRow.querySelector('.race-total');
