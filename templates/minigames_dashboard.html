@@ -8,7 +8,7 @@
   gap: 0;
   overflow-y: auto;
   height: 100%;
-  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-family: var(--ps-font-mono);
   font-size: 13px;
   line-height: 1.45;
   font-variant-numeric: tabular-nums;
@@ -21,25 +21,25 @@
   --warn: #d96a6a;
 }
 .minigames-body .ey {
-  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  font: 500 10px/1.45 var(--ps-font-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .minigames-body h1 {
-  font: 400 32px/1.05 'IBM Plex Mono', monospace;
+  font: 400 32px/1.05 var(--ps-font-mono);
   margin: 4px 0 0;
   letter-spacing: -0.025em;
 }
 .minigames-body h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
 .minigames-body h2 {
-  font: 400 18px/1.2 'IBM Plex Mono', monospace;
+  font: 400 18px/1.2 var(--ps-font-mono);
   margin: 0;
 }
 .minigames-body .chip {
   display: inline-flex;
   padding: 5px 10px;
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 var(--ps-font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 1px solid var(--rule);
@@ -47,7 +47,7 @@
 }
 .minigames-body .chip.mint { border-color: var(--accent); color: var(--accent); }
 .minigames-body .btn {
-  font: 500 11px/1 'IBM Plex Mono', monospace;
+  font: 500 11px/1 var(--ps-font-mono);
   padding: 8px 16px;
   border: 1px solid var(--ink);
   background: var(--ink);
@@ -61,7 +61,7 @@
   color: var(--ink);
 }
 .minigames-body .hero-num {
-  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-family: var(--ps-font-display);
   font-weight: 200;
   line-height: 0.85;
   letter-spacing: -0.04em;
