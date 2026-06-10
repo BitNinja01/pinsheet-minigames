@@ -4,8 +4,6 @@ import sqlite3
 import logging
 from pathlib import Path
 
-from .blueprint import bp
-
 log = logging.getLogger("pinsheet")
 
 plugin_info = {
@@ -63,6 +61,8 @@ _TABLES = [
 
 
 def register(app):
+    from .blueprint import bp
+
     _parent = Path(__file__).parent
     _static_dir = _parent / "static"
 
