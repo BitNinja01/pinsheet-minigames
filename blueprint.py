@@ -142,11 +142,18 @@ def dashboard():
     completed = _get_games_for_user(uid, dbp, "complete")
     game_types = get_available_types()
 
+    db = sqlite3.connect(str(dbp))
+    my_ids = set(r["game_id"] for r in db.execute(
+        "SELECT game_id FROM plugin_minigames_players WHERE user_id = ?", (uid,)
+    ).fetchall())
+    db.close()
+
     return render_template(
         "minigames_dashboard.html",
         **base_context(
             active_games=active_games,
             user_id=uid,
+            my_game_ids=my_ids,
             game_types=game_types,
             current_page="minigames",
         ),
@@ -281,7 +288,7 @@ def game_detail(id):
             ch = course_data.get("holes", {})
             hole_pars = [int(ch.get(str(i), {}).get("par", 4)) for i in range(1, 19)]
 
-    max_birdies = max((ps["birdies"] for ps in player_states), default=0) if player_states else 0
+    max_birdies = max((ps["birdies"] for ps in player_states if ps["user_id"] != uid), default=0) if player_states else 0
     unassigned_rounds = _get_unassigned_rounds(uid, id, dbp) if is_member else []
 
     return render_template(

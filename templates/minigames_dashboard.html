@@ -135,7 +135,7 @@
             </div>
           </div>
           <div style="margin-top: 8px;">
-            {% if g.host_user_id == user_id %}
+            {% if g.host_user_id == user_id or g.id in my_game_ids %}
             <a href="{{ url_for('minigames.game_detail', id=g.id) }}" class="btn" style="font-size: 10px; padding: 6px 12px; text-decoration: none;">View</a>
             {% else %}
             <form method="POST" action="{{ url_for('minigames.join_game', id=g.id) }}" style="display:inline;">

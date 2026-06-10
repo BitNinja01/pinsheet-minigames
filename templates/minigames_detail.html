@@ -186,6 +186,13 @@
         </div>
       </div>
       {% endif %}
+
+      <div style="margin-top: auto; padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
+        <div class="ey" style="margin-bottom: 8px;">How it works</div>
+        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.6;">
+          Play rounds and cross off pars and birdies as you earn them. First to fill the card wins the pot. Each birdie earns $1 from every other player. Max exposure per player: ${{ game.buy_in + max_birdies }}.
+        </div>
+      </div>
     </div>
 
     {# Center: bingo card #}
@@ -234,13 +241,6 @@
           </div>
         </div>
         {% endfor %}
-      </div>
-
-      <div style="margin-top: auto; padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
-        <div class="ey" style="margin-bottom: 8px;">How it works</div>
-        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.6;">
-          Play rounds and cross off pars and birdies as you earn them. First to fill the card wins the pot. Each birdie earns $1 from every other player. Max exposure per player: ${{ game.buy_in + max_birdies }}.
-        </div>
       </div>
     </div>
   </div>
