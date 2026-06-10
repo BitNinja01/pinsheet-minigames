@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import json
 import sqlite3
-import logging
 from pathlib import Path
 
-from flask import Blueprint, render_template, request, redirect, url_for, g, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, g
 from flask_login import login_required, current_user
 
 from .engine import get_engine, get_available_types
 
-log = logging.getLogger("pinsheet")
 bp = Blueprint("minigames", __name__)
 
 
