@@ -223,22 +223,22 @@
       <div style="display: flex; flex-direction: column;">
         {% for ps in player_states %}
         {% set total = ps.pars + ps.birdies %}
-        <div style="display: grid; grid-template-columns: 24px 1fr 1.4fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
+        <div data-user-id="{{ ps.user_id }}" style="display: grid; grid-template-columns: 24px 1fr 1.4fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
           <span style="font-size: 22px; font-weight: 200; font-family: var(--ps-font-display); color: var(--ink-3);">{{ loop.index }}</span>
           <div>
             <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
-            <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}p · {{ ps.birdies }}b</div>
+            <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}p · {{ ps.birdies }}b</div>
           </div>
           <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
-            <div style="width: {{ (ps.pars / 36) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
-              {% if ps.pars >= 5 %}<span style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>{% endif %}
+            <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (ps.pars / 36) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
+              {% if ps.pars >= 5 %}<span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>{% endif %}
             </div>
-            <div style="width: {{ (ps.birdies / 36) * 100 }}%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
-              {% if ps.birdies >= 3 %}<span style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">{{ ps.birdies }}b</span>{% endif %}
+            <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 36) * 100 }}%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
+              {% if ps.birdies >= 3 %}<span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">{{ ps.birdies }}b</span>{% endif %}
             </div>
           </div>
           <div style="text-align: right; font-size: 16px; font-weight: 300; letter-spacing: -0.02em;">
-            {{ total }}<span style="font-size: 11px; color: var(--ink-3);">/36</span>
+            <span class="{% if ps.user_id == current_user.id %}race-total{% endif %}">{{ total }}</span><span style="font-size: 11px; color: var(--ink-3);">/36</span>
           </div>
         </div>
         {% endfor %}
@@ -285,6 +285,7 @@
 
 <script>
 const CSRF_TOKEN = '{{ csrf_token() }}';
+const USER_ID = {{ current_user.id }};
 document.querySelectorAll('.bx.clickable').forEach(function(el) {
   el.addEventListener('click', function() {
     var hole = this.dataset.hole;
@@ -308,6 +309,22 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
       var birdiesEl = document.getElementById('my-birdies');
       if (parsEl) parsEl.textContent = data.pars;
       if (birdiesEl) birdiesEl.textContent = data.birdies;
+      var raceRow = document.querySelector('[data-user-id="' + USER_ID + '"]');
+      if (raceRow) {
+        var pp = data.pars, bb = data.birdies, tt = pp + bb;
+        var s = raceRow.querySelector('.race-stats');
+        if (s) s.textContent = pp + 'p \u00b7 ' + bb + 'b';
+        var pb = raceRow.querySelector('.race-par-bar');
+        if (pb) pb.style.width = (pp / 36 * 100) + '%';
+        var bb2 = raceRow.querySelector('.race-birdie-bar');
+        if (bb2) bb2.style.width = (bb / 36 * 100) + '%';
+        var pl = raceRow.querySelector('.race-par-label');
+        if (pl) { pl.textContent = pp + 'p'; pl.style.display = pp >= 5 ? '' : 'none'; }
+        var bl = raceRow.querySelector('.race-birdie-label');
+        if (bl) { bl.textContent = bb + 'b'; bl.style.display = bb >= 3 ? '' : 'none'; }
+        var te = raceRow.querySelector('.race-total');
+        if (te) te.textContent = tt;
+      }
     }).catch(function() {});
   });
 });
