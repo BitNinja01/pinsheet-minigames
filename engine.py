@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 log = logging.getLogger("pinsheet")
 
@@ -168,7 +166,7 @@ class ParBingoEngine(GameEngine):
         for ps in player_states:
             uid = ps["user_id"]
             if uid == winner_id:
-                result[uid] = pot + (winner_birdies * (n - 1))
+                result[uid] = (n - 1) * (buy_in + winner_birdies)
             else:
                 result[uid] = -buy_in - winner_birdies
 
