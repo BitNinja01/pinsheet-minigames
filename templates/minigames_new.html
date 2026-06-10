@@ -71,6 +71,7 @@
   {% endif %}
 
   <form method="POST" style="margin-top: 28px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="name">Game name</label>
     <input type="text" id="name" name="name" placeholder="e.g. Thursday Night Crew" required>
 

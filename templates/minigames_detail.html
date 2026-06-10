@@ -128,6 +128,7 @@
       <button class="btn" onclick="document.getElementById('roundPicker').style.display='block'">Log round</button>
       {% elif not is_member and game.status in ('lobby', 'active') %}
       <form method="POST" action="{{ url_for('minigames.join_game', id=game.id) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn">Join</button>
       </form>
       {% endif %}
@@ -264,6 +265,7 @@
       </div>
       {% if unassigned_rounds %}
       <form method="POST" action="{{ url_for('minigames.log_round', id=game.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% for r in unassigned_rounds %}
         <label style="display: block; padding: 12px; border: 1px solid var(--rule); margin-bottom: 8px; cursor: pointer; font-size: 13px;">
           <input type="radio" name="round_date" value="{{ r.date }}" required style="margin-right: 12px;">
@@ -283,6 +285,7 @@
     <div style="text-align: center;">
       <div class="ey" style="margin-bottom: 12px;">You haven't joined this game yet</div>
       <form method="POST" action="{{ url_for('minigames.join_game', id=game.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn">Join game</button>
       </form>
     </div>
