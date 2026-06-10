@@ -258,7 +258,7 @@
           {% set par_only = ps.pars - ps.birdies %}
           <div style="height: 24px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
             <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (par_only / 18) * 100 }}%; background: var(--ink-3); align-items: center; justify-content: center;{% if par_only == 0 %}display:none{% else %}display:flex{% endif %};">
-              <span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>
+              <span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ par_only }}p</span>
             </div>
             <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); align-items: center; justify-content: center;{% if ps.birdies == 0 %}display:none{% else %}display:flex{% endif %};">
               <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em; text-transform: uppercase;">
@@ -355,7 +355,7 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
         }
         var pl = raceRow.querySelector('.race-par-label');
         if (pl) {
-          pl.textContent = pp + 'p';
+          pl.textContent = po + 'p';
           pl.style.display = (pp >= 3 && po > 0) ? '' : 'none';
         }
         var bl = raceRow.querySelector('.race-birdie-label');
