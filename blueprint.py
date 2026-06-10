@@ -8,6 +8,7 @@ from flask import Blueprint, current_app, render_template, request, redirect, ur
 from flask_login import login_required, current_user
 
 from .engine import get_engine, get_available_types
+from source.request_data import base_context
 
 bp = Blueprint("minigames", __name__)
 
@@ -129,11 +130,13 @@ def dashboard():
 
     return render_template(
         "minigames_dashboard.html",
-        active_games=active,
-        lobby_games=lobby,
-        completed_games=completed,
-        game_types=game_types,
-        current_page="minigames",
+        **base_context(
+            active_games=active,
+            lobby_games=lobby,
+            completed_games=completed,
+            game_types=game_types,
+            current_page="minigames",
+        ),
     )
 
 
@@ -157,9 +160,11 @@ def new_game():
             game_types = get_available_types()
             return render_template(
                 "minigames_new.html",
-                game_types=game_types,
-                error="Name and game type are required.",
-                current_page="minigames",
+                **base_context(
+                    game_types=game_types,
+                    error="Name and game type are required.",
+                    current_page="minigames",
+                ),
             )
 
         engine = get_engine(game_type)
@@ -167,9 +172,11 @@ def new_game():
             game_types = get_available_types()
             return render_template(
                 "minigames_new.html",
-                game_types=game_types,
-                error=f"Unknown game type '{game_type}'.",
-                current_page="minigames",
+                **base_context(
+                    game_types=game_types,
+                    error=f"Unknown game type '{game_type}'.",
+                    current_page="minigames",
+                ),
             )
 
         db = sqlite3.connect(str(dbp))
@@ -195,8 +202,10 @@ def new_game():
     game_types = get_available_types()
     return render_template(
         "minigames_new.html",
-        game_types=game_types,
-        current_page="minigames",
+        **base_context(
+            game_types=game_types,
+            current_page="minigames",
+        ),
     )
 
 
@@ -263,16 +272,18 @@ def game_detail(id):
 
     return render_template(
         "minigames_detail.html",
-        game=game,
-        engine=engine,
-        is_member=is_member,
-        my_state=my_state,
-        my_pars=my_pars,
-        my_birdies=my_birdies,
-        player_states=player_states,
-        hole_pars=hole_pars,
-        unassigned_rounds=unassigned_rounds,
-        current_page="minigames",
+        **base_context(
+            game=game,
+            engine=engine,
+            is_member=is_member,
+            my_state=my_state,
+            my_pars=my_pars,
+            my_birdies=my_birdies,
+            player_states=player_states,
+            hole_pars=hole_pars,
+            unassigned_rounds=unassigned_rounds,
+            current_page="minigames",
+        ),
     )
 
 
