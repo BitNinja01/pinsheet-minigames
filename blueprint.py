@@ -139,7 +139,9 @@ def dashboard():
     dbp = _db_path()
 
     active_games = _get_all_active_games(dbp)
-    completed = _get_games_for_user(uid, dbp, "complete")
+    my_games = _get_games_for_user(uid, dbp)
+    completed = [g for g in my_games if g["status"] == "complete"]
+    open_games = [g for g in my_games if g["status"] in ("lobby", "active")]
     game_types = get_available_types()
 
     db = sqlite3.connect(str(dbp))
@@ -153,6 +155,8 @@ def dashboard():
         "minigames_dashboard.html",
         **base_context(
             active_games=active_games,
+            open_games=open_games,
+            completed=completed,
             user_id=uid,
             my_game_ids=my_ids,
             game_types=game_types,
@@ -292,12 +296,21 @@ def game_detail(id):
     max_birdies = max((ps["birdies"] for ps in player_states if ps["user_id"] != uid), default=0) if player_states else 0
     unassigned_rounds = _get_unassigned_rounds(uid, id, dbp) if is_member else []
 
+    prize = {}
+    if game["status"] == "complete" and engine:
+        prize = engine.prize_breakdown(game, [
+            {"user_id": ps["user_id"], "state": ps["state"]} for ps in player_states
+        ])
+
+    is_host = game["host_user_id"] == uid
+
     return render_template(
         "minigames_detail.html",
         **base_context(
             game=game,
             engine=engine,
             is_member=is_member,
+            is_host=is_host,
             my_state=my_state,
             my_pars=my_pars,
             my_birdies=my_birdies,
@@ -305,6 +318,7 @@ def game_detail(id):
             hole_pars=hole_pars,
             max_birdies=max_birdies,
             unassigned_rounds=unassigned_rounds,
+            prize=prize,
             current_page="minigames",
         ),
     )
@@ -515,3 +529,35 @@ def toggle_hole(id):
         "pars": pars,
         "birdies": birdies,
     }
+
+
+@bp.route("/<int:id>/close", methods=["POST"])
+@login_required
+def close_game(id):
+    view_user = getattr(g, "view_user", None) or {"id": current_user.id}
+    uid = view_user["id"]
+    dbp = _db_path()
+
+    db = sqlite3.connect(str(dbp))
+    db.row_factory = sqlite3.Row
+    game_row = db.execute(
+        "SELECT * FROM plugin_minigames_games WHERE id = ?", (id,)
+    ).fetchone()
+    if not game_row:
+        db.close()
+        return "Game not found", 404
+
+    game = dict(game_row)
+    is_admin = getattr(current_user, "is_admin", False)
+    if game["host_user_id"] != uid and not is_admin:
+        db.close()
+        return "Only the host or an admin can close a game", 403
+
+    if game["status"] != "complete":
+        db.close()
+        return "Only completed games can be closed", 400
+
+    db.execute("UPDATE plugin_minigames_games SET status = 'closed' WHERE id = ?", (id,))
+    db.commit()
+    db.close()
+    return redirect(url_for("minigames.dashboard"))

@@ -133,15 +133,37 @@
   </div>
 
   {% if game.status == 'complete' %}
-    <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule); text-align: center;">
-    <div class="ey">Game over</div>
-    {% set winner_name = player_states | selectattr('user_id', 'equalto', game.winner_user_id) | map(attribute='display_name') | first %}
-    <div class="hero-num" style="font-size: 48px; margin-top: 8px; color: var(--accent);">
-      {{ winner_name }}
+  <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div class="ey">Game over</div>
+      {% set winner_name = player_states | selectattr('user_id', 'equalto', game.winner_user_id) | map(attribute='display_name') | first %}
+      <div class="hero-num" style="font-size: 48px; margin-top: 8px; color: var(--accent);">
+        {{ winner_name }}
+      </div>
+      <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
+        {{ game.game_type.replace('_', ' ') }} · {{ game.name }}
+      </div>
     </div>
-    <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
-      {{ game.game_type.replace('_', ' ') }} · {{ game.name }}
+    {% if prize %}
+    <div style="border-top: 1px solid var(--rule); padding-top: 16px;">
+      <div class="ey" style="margin-bottom: 12px;">Payouts</div>
+      {% for ps in player_states %}
+      {% set amount = prize.get(ps.user_id, 0) %}
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px;">
+        <span style="color: var(--ink-2);">{{ ps.display_name }}</span>
+        <span style="font-weight: 500; {% if amount > 0 %}color: var(--accent);{% elif amount < 0 %}color: var(--warn);{% endif %}">
+          {% if amount > 0 %}+{% endif %}${{ amount }}
+        </span>
+      </div>
+      {% endfor %}
     </div>
+    {% endif %}
+    {% if is_host %}
+    <form method="POST" action="{{ url_for('minigames.close_game', id=game.id) }}" style="margin-top: 16px; text-align: center;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn ghost" style="font-size: 10px; padding: 6px 14px;">Close game</button>
+    </form>
+    {% endif %}
   </div>
   {% endif %}
 
@@ -230,13 +252,20 @@
             <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
             <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}p · {{ ps.birdies }}b</div>
           </div>
+          {% set par_only = ps.pars - ps.birdies %}
           <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
-            <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (ps.pars / 18) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
+            {% if par_only > 0 %}
+            <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (par_only / 18) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
               {% if ps.pars >= 3 %}<span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>{% endif %}
             </div>
+            {% endif %}
+            {% if ps.birdies > 0 %}
             <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
-              {% if ps.birdies >= 2 %}<span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">{{ ps.birdies }}b</span>{% endif %}
+              <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">
+                {% if ps.birdies >= 2 %}{{ ps.birdies }}b{% elif ps.pars >= 3 %}{{ ps.pars }}p{% endif %}
+              </span>
             </div>
+            {% endif %}
           </div>
           <div style="text-align: right; font-size: 16px; font-weight: 300; letter-spacing: -0.02em;">
             <span class="{% if ps.user_id == current_user.id %}race-total{% endif %}">{{ total }}</span><span style="font-size: 11px; color: var(--ink-3);">/18</span>
@@ -312,17 +341,29 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
       if (birdiesEl) birdiesEl.textContent = data.birdies;
       var raceRow = document.querySelector('[data-user-id="' + USER_ID + '"]');
       if (raceRow) {
-        var pp = data.pars, bb = data.birdies, tt = pp;
+        var pp = data.pars, bb = data.birdies, po = pp - bb, tt = pp;
         var s = raceRow.querySelector('.race-stats');
         if (s) s.textContent = pp + 'p \u00b7 ' + bb + 'b';
         var pb = raceRow.querySelector('.race-par-bar');
-        if (pb) pb.style.width = (pp / 18 * 100) + '%';
+        if (pb) {
+          pb.style.width = Math.max(0, (po / 18 * 100)) + '%';
+          pb.style.display = po > 0 ? '' : 'none';
+        }
         var bb2 = raceRow.querySelector('.race-birdie-bar');
-        if (bb2) bb2.style.width = (bb / 18 * 100) + '%';
+        if (bb2) {
+          bb2.style.width = (bb / 18 * 100) + '%';
+          bb2.style.display = bb > 0 ? '' : 'none';
+        }
         var pl = raceRow.querySelector('.race-par-label');
-        if (pl) { pl.textContent = pp + 'p'; pl.style.display = pp >= 3 ? '' : 'none'; }
+        if (pl) {
+          pl.textContent = pp + 'p';
+          pl.style.display = (pp >= 3 && po > 0) ? '' : 'none';
+        }
         var bl = raceRow.querySelector('.race-birdie-label');
-        if (bl) { bl.textContent = bb + 'b'; bl.style.display = bb >= 2 ? '' : 'none'; }
+        if (bl) {
+          bl.textContent = bb >= 2 ? bb + 'b' : (pp >= 3 ? pp + 'p' : '');
+          bl.style.display = (bb >= 2 || (bb > 0 && pp >= 3)) ? '' : 'none';
+        }
         var te = raceRow.querySelector('.race-total');
         if (te) te.textContent = tt;
       }
