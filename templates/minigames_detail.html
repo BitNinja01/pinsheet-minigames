@@ -249,14 +249,14 @@
       <div style="display: flex; flex-direction: column;">
         {% for ps in player_states %}
         {% set total = ps.pars %}
-        <div data-user-id="{{ ps.user_id }}" style="display: grid; grid-template-columns: 24px 1fr 1.4fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
+        <div data-user-id="{{ ps.user_id }}" style="display: grid; grid-template-columns: 24px 1fr 1.8fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
           <span style="font-size: 22px; font-weight: 200; font-family: var(--ps-font-display); color: var(--ink-3);">{{ loop.index }}</span>
           <div>
             <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
             <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}P · {{ ps.birdies }}B</div>
           </div>
           {% set par_only = ps.pars - ps.birdies %}
-          <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
+          <div style="height: 24px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
             <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (par_only / 18) * 100 }}%; background: var(--ink-3); align-items: center; justify-content: center;{% if par_only == 0 %}display:none{% else %}display:flex{% endif %};">
               <span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>
             </div>
