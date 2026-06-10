@@ -346,12 +346,12 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
         var pb = raceRow.querySelector('.race-par-bar');
         if (pb) {
           pb.style.width = Math.max(0, (po / 18 * 100)) + '%';
-          pb.style.display = po > 0 ? '' : 'none';
+          pb.style.display = po > 0 ? 'flex' : 'none';
         }
         var bb2 = raceRow.querySelector('.race-birdie-bar');
         if (bb2) {
           bb2.style.width = (bb / 18 * 100) + '%';
-          bb2.style.display = bb > 0 ? '' : 'none';
+          bb2.style.display = bb > 0 ? 'flex' : 'none';
         }
         var pl = raceRow.querySelector('.race-par-label');
         if (pl) {
