@@ -1,0 +1,16 @@
+/* PinSheet Minigames — shared plugin styles */
+/* Dark theme only — follows design-system/tokens.css */
+
+.minigames-body,
+.minigames-detail,
+.minigames-new {
+  --ps-paper: #131312;
+  --ps-paper-2: #1c1c1a;
+  --ps-ink: #ecebe6;
+  --ps-ink-2: #a8a59d;
+  --ps-ink-3: #6c685f;
+  --ps-rule: #2a2925;
+  --ps-accent: #5db49a;
+  --ps-accent-dim: rgba(93, 180, 154, 0.16);
+  --ps-warn: #d96a6a;
+}
