@@ -4,7 +4,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from flask import Blueprint, render_template, request, redirect, url_for, g
+from flask import Blueprint, current_app, render_template, request, redirect, url_for, g
 from flask_login import login_required, current_user
 
 from .engine import get_engine, get_available_types
@@ -12,8 +12,8 @@ from .engine import get_engine, get_available_types
 bp = Blueprint("minigames", __name__)
 
 
-def _db_path(app) -> Path:
-    return app.config["DB_PATH"]
+def _db_path() -> Path:
+    return current_app.config["DB_PATH"]
 
 
 def _get_games_for_user(user_id: int, db_path: Path, status: str | None = None) -> list[dict]:
@@ -120,7 +120,7 @@ def _get_unassigned_rounds(user_id: int, game_id: int, db_path: Path) -> list[di
 def dashboard():
     view_user = getattr(g, "view_user", None) or {"id": current_user.id}
     uid = view_user["id"]
-    dbp = _db_path(bp.app)
+    dbp = _db_path()
 
     active = _get_games_for_user(uid, dbp, "active")
     lobby = _get_games_for_user(uid, dbp, "lobby")
@@ -142,7 +142,7 @@ def dashboard():
 def new_game():
     view_user = getattr(g, "view_user", None) or {"id": current_user.id}
     uid = view_user["id"]
-    dbp = _db_path(bp.app)
+    dbp = _db_path()
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -205,7 +205,7 @@ def new_game():
 def game_detail(id):
     view_user = getattr(g, "view_user", None) or {"id": current_user.id}
     uid = view_user["id"]
-    dbp = _db_path(bp.app)
+    dbp = _db_path()
 
     db = sqlite3.connect(str(dbp))
     db.row_factory = sqlite3.Row
@@ -281,7 +281,7 @@ def game_detail(id):
 def join_game(id):
     view_user = getattr(g, "view_user", None) or {"id": current_user.id}
     uid = view_user["id"]
-    dbp = _db_path(bp.app)
+    dbp = _db_path()
 
     db = sqlite3.connect(str(dbp))
     db.row_factory = sqlite3.Row
@@ -333,7 +333,7 @@ def join_game(id):
 def log_round(id):
     view_user = getattr(g, "view_user", None) or {"id": current_user.id}
     uid = view_user["id"]
-    dbp = _db_path(bp.app)
+    dbp = _db_path()
 
     round_date = request.form.get("round_date", "")
     round_index_str = request.form.get("round_index", "0")
