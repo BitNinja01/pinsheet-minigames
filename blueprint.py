@@ -281,6 +281,7 @@ def game_detail(id):
             ch = course_data.get("holes", {})
             hole_pars = [int(ch.get(str(i), {}).get("par", 4)) for i in range(1, 19)]
 
+    max_birdies = max((ps["birdies"] for ps in player_states), default=0) if player_states else 0
     unassigned_rounds = _get_unassigned_rounds(uid, id, dbp) if is_member else []
 
     return render_template(
@@ -294,6 +295,7 @@ def game_detail(id):
             my_birdies=my_birdies,
             player_states=player_states,
             hole_pars=hole_pars,
+            max_birdies=max_birdies,
             unassigned_rounds=unassigned_rounds,
             current_page="minigames",
         ),
@@ -430,3 +432,71 @@ def log_round(id):
     db.commit()
     db.close()
     return redirect(url_for("minigames.game_detail", id=id))
+
+
+@bp.route("/<int:id>/toggle", methods=["POST"])
+@login_required
+def toggle_hole(id):
+    view_user = getattr(g, "view_user", None) or {"id": current_user.id}
+    uid = view_user["id"]
+    dbp = _db_path()
+
+    hole_number = request.form.get("hole_number", "")
+    toggle_type = request.form.get("type", "")
+
+    if hole_number not in [str(i) for i in range(1, 19)] or toggle_type not in ("par", "birdie"):
+        return {"ok": False}, 400
+
+    db = sqlite3.connect(str(dbp))
+    db.row_factory = sqlite3.Row
+
+    game_row = db.execute(
+        "SELECT * FROM plugin_minigames_games WHERE id = ?", (id,)
+    ).fetchone()
+    if not game_row:
+        db.close()
+        return {"ok": False}, 404
+
+    game = dict(game_row)
+
+    state_row = db.execute(
+        "SELECT * FROM plugin_minigames_states WHERE game_id = ? AND user_id = ?",
+        (id, uid),
+    ).fetchone()
+    if not state_row:
+        db.close()
+        return {"ok": False}, 403
+
+    state = json.loads(state_row["state_json"])
+    holes = state.get("holes", {})
+    holes[hole_number][toggle_type] = not holes[hole_number][toggle_type]
+
+    db.execute(
+        "UPDATE plugin_minigames_states SET state_json = ?, updated_at = datetime('now') WHERE game_id = ? AND user_id = ?",
+        (json.dumps(state), id, uid),
+    )
+
+    victory = False
+    engine = get_engine(game["game_type"])
+    if engine:
+        victory = engine.check_victory(game, state)
+        if victory:
+            db.execute(
+                "UPDATE plugin_minigames_games SET status = 'complete', winner_user_id = ?, completed_at = datetime('now') WHERE id = ?",
+                (uid, id),
+            )
+
+    db.commit()
+    db.close()
+
+    pars = sum(1 for h in holes.values() if h.get("par"))
+    birdies = sum(1 for h in holes.values() if h.get("birdie"))
+
+    return {
+        "ok": True,
+        "par": holes[hole_number]["par"],
+        "birdie": holes[hole_number]["birdie"],
+        "victory": victory,
+        "pars": pars,
+        "birdies": birdies,
+    }
