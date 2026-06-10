@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.minigames-new {
+  padding: 28px 48px 32px;
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  --ink: #ecebe6;
+  --ink-2: #a8a59d;
+  --ink-3: #6c685f;
+  --rule: #2a2925;
+  --accent: #5db49a;
+  --warn: #d96a6a;
+}
+.minigames-new .ey {
+  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.minigames-new h1 {
+  font: 400 32px/1.05 'IBM Plex Mono', monospace;
+  margin: 4px 0 0;
+  letter-spacing: -0.025em;
+}
+.minigames-new h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.minigames-new .btn {
+  font: 500 11px/1 'IBM Plex Mono', monospace;
+  padding: 8px 16px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #131312;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.minigames-new .btn.ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.minigames-new label {
+  display: block;
+  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+.minigames-new input, .minigames-new select {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+</style>
+
+<div class="minigames-new" style="max-width: 520px; margin: 0 auto; padding-top: 60px;">
+  <div class="ey" style="margin-bottom: 4px;">Create</div>
+  <h1>New <em>game</em></h1>
+
+  {% if error %}
+  <div style="padding: 12px; border: 1px solid var(--warn); margin-top: 20px; font-size: 12px; color: var(--warn);">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="POST" style="margin-top: 28px;">
+    <label for="name">Game name</label>
+    <input type="text" id="name" name="name" placeholder="e.g. Thursday Night Crew" required>
+
+    <label for="game_type">Game type</label>
+    <select id="game_type" name="game_type" required>
+      <option value="">Select a game type…</option>
+      {% for gt in game_types %}
+      <option value="{{ gt.type_id }}">{{ gt.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="buy_in">Buy-in ($)</label>
+    <input type="number" id="buy_in" name="buy_in" value="0" min="0" style="width: 120px;">
+    <div style="font-size: 11px; color: var(--ink-3); margin-top: -16px; margin-bottom: 20px;">Set to 0 for free games</div>
+
+    <div style="display: flex; gap: 8px; margin-top: 8px;">
+      <button type="submit" class="btn">Create game</button>
+      <a href="{{ url_for('minigames.dashboard') }}" class="btn ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
