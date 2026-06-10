@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.minigames-detail {
+  padding: 28px 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow: hidden;
+  height: 100%;
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  --ink: #ecebe6;
+  --ink-2: #a8a59d;
+  --ink-3: #6c685f;
+  --rule: #2a2925;
+  --accent: #5db49a;
+  --paper-2: #1c1c1a;
+  --warn: #d96a6a;
+  --accent-dim: rgba(93,180,154,0.16);
+}
+.minigames-detail .ey {
+  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.minigames-detail h1 {
+  font: 400 32px/1.05 'IBM Plex Mono', monospace;
+  margin: 4px 0 0;
+  letter-spacing: -0.025em;
+}
+.minigames-detail h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.minigames-detail .chip {
+  display: inline-flex;
+  padding: 5px 10px;
+  font: 500 10px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+}
+.minigames-detail .chip.mint { border-color: var(--accent); color: var(--accent); }
+.minigames-detail .btn {
+  font: 500 11px/1 'IBM Plex Mono', monospace;
+  padding: 8px 16px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #131312;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.minigames-detail .btn.ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.minigames-detail .hero-num {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-weight: 200;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+}
+.minigames-detail .bingo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--rule);
+  border-left: 1px solid var(--rule);
+}
+.minigames-detail .bcell {
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 1;
+}
+.minigames-detail .bcell .hole {
+  font-size: 22px;
+  color: var(--ink-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.minigames-detail .bcell .hole .pl {
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+}
+.minigames-detail .bcell .checks {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.minigames-detail .bx {
+  flex: 1;
+  height: 28px;
+  border: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.minigames-detail .bx.p { background: var(--ink); color: #131312; border-color: var(--ink); }
+.minigames-detail .bx.b { background: var(--accent); color: #131312; border-color: var(--accent); }
+.minigames-detail .pbar { height: 3px; background: var(--rule); width: 100%; }
+.minigames-detail .pfill { height: 100%; background: var(--accent); }
+</style>
+
+<div class="minigames-detail">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; border-bottom: 1px solid var(--rule);">
+    <div>
+      <div class="ey">{{ game.game_type.replace('_', ' ') }} · Minigames</div>
+      <h1><em>{{ game.name }}</em></h1>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="{{ url_for('minigames.dashboard') }}" class="btn ghost">← Games</a>
+      {% if is_member and game.status == 'active' %}
+      <button class="btn" onclick="document.getElementById('roundPicker').style.display='block'">Log round</button>
+      {% elif not is_member and game.status in ('lobby', 'active') %}
+      <form method="POST" action="{{ url_for('minigames.join_game', id=game.id) }}" style="display:inline;">
+        <button class="btn">Join</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if game.status == 'complete' %}
+  <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule); text-align: center;">
+    <div class="ey">Game over</div>
+    <div class="hero-num" style="font-size: 48px; margin-top: 8px; color: var(--accent);">
+      {{ game.winner_user_id }}
+    </div>
+    <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
+      Winner · {% for ps in player_states %}{% if ps.user_id == game.winner_user_id %}{{ ps.display_name }}{% endif %}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if is_member %}
+  <div style="display: grid; grid-template-columns: 220px 450px 1fr; gap: 36px; flex: 1; min-height: 0;">
+    {# Left: info rail #}
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      <div>
+        <div class="ey">The pot</div>
+        <div class="hero-num" style="font-size: 96px; margin-top: 8px;">
+          <span style="color: var(--ink-3);">$</span>{{ game.buy_in * player_states|length }}
+        </div>
+        <div style="font-size: 12px; color: var(--ink-3); margin-top: 8px;">
+          {{ player_states|length }} players{% if game.buy_in %} · ${{ game.buy_in }} buy-in{% endif %}
+        </div>
+      </div>
+      <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
+        <div class="ey">Your card</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+          <div>
+            <div style="font-size: 32px; font-weight: 300; letter-spacing: -0.03em;">
+              {{ my_pars }}<span style="font-size: 14px; color: var(--ink-3);">/18</span>
+            </div>
+            <div class="ey" style="margin-top: 4px;">Pars</div>
+          </div>
+          <div>
+            <div style="font-size: 32px; font-weight: 300; letter-spacing: -0.03em; color: var(--accent);">
+              {{ my_birdies }}<span style="font-size: 14px; color: var(--ink-3);">/18</span>
+            </div>
+            <div class="ey" style="margin-top: 4px;">Birdies</div>
+          </div>
+        </div>
+      </div>
+      {% if game.buy_in %}
+      <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
+        <div class="ey">Exposure</div>
+        <div style="font-size: 24px; font-weight: 300; margin-top: 8px; letter-spacing: -0.02em;">
+          <span style="color: var(--ink-3);">$</span>{{ game.buy_in + 18 }}
+          <span style="font-size: 12px; color: var(--ink-3); margin-left: 6px;">max</span>
+        </div>
+        <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
+          ${{ game.buy_in }} buy-in + $18 birdie risk
+        </div>
+      </div>
+      {% endif %}
+      <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
+        <div class="ey">Status</div>
+        <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+          <span class="chip mint">{{ game.status }}</span>
+          <span class="chip">{{ unassigned_rounds|length }} unassigned</span>
+        </div>
+      </div>
+    </div>
+
+    {# Center: bingo card #}
+    <div>
+      <div class="ey" style="margin-bottom: 10px;">Your bingo card · holes 1–18</div>
+      <div class="bingo">
+        {% for i in range(1, 19) %}
+        {% set h = i|string %}
+        {% set s = my_state.get('holes', {}).get(h, {'par': false, 'birdie': false}) %}
+        {% set complete = s.get('par') and s.get('birdie') %}
+        <div class="bcell"{% if complete %} style="background: var(--accent-dim);"{% endif %}>
+          <div class="hole">
+            <span>{{ '%02d' % i }}</span>
+            <span class="pl">p{{ hole_pars[i-1] }}</span>
+          </div>
+          <div class="checks">
+            <div class="bx{% if s.get('par') %} p{% endif %}">par</div>
+            <div class="bx{% if s.get('birdie') %} b{% endif %}">brd</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Right: the race #}
+    <div style="border-left: 1px solid var(--rule); padding-left: 32px; display: flex; flex-direction: column;">
+      <div class="ey" style="margin-bottom: 20px;">The race</div>
+      <div style="display: flex; flex-direction: column;">
+        {% for ps in player_states %}
+        {% set total = ps.pars + ps.birdies %}
+        <div style="display: grid; grid-template-columns: 24px 1fr 1.4fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
+          <span style="font-size: 22px; font-weight: 200; font-family: 'Barlow Condensed', sans-serif; color: var(--ink-3);">{{ loop.index }}</span>
+          <div>
+            <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
+            <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}p · {{ ps.birdies }}b</div>
+          </div>
+          <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
+            <div style="width: {{ (ps.pars / 36) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
+              {% if ps.pars >= 5 %}<span style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>{% endif %}
+            </div>
+            <div style="width: {{ (ps.birdies / 36) * 100 }}%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
+              {% if ps.birdies >= 3 %}<span style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">{{ ps.birdies }}b</span>{% endif %}
+            </div>
+          </div>
+          <div style="text-align: right; font-size: 16px; font-weight: 300; letter-spacing: -0.02em;">
+            {{ total }}<span style="font-size: 11px; color: var(--ink-3);">/36</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div style="margin-top: auto; padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
+        <div class="ey" style="margin-bottom: 8px;">How it works</div>
+        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.6;">
+          Play rounds and cross off pars and birdies as you earn them. First to fill the card wins the pot. Each birdie earns $1 from every other player. Max exposure per player: ${{ game.buy_in + 18 }}.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Round picker modal #}
+  <div id="roundPicker" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #131312; border: 1px solid var(--rule); padding: 32px; min-width: 480px; max-height: 80vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px;">
+        <div class="ey">Select a round to log</div>
+        <button class="btn ghost" onclick="document.getElementById('roundPicker').style.display='none'" style="font-size: 10px;">Close</button>
+      </div>
+      {% if unassigned_rounds %}
+      <form method="POST" action="{{ url_for('minigames.log_round', id=game.id) }}">
+        {% for r in unassigned_rounds %}
+        <label style="display: block; padding: 12px; border: 1px solid var(--rule); margin-bottom: 8px; cursor: pointer; font-size: 13px;">
+          <input type="radio" name="round_date" value="{{ r.date }}" required style="margin-right: 12px;">
+          <input type="hidden" name="round_index" value="{{ r.round_index }}">
+          {{ r.label }}
+        </label>
+        {% endfor %}
+        <button class="btn" type="submit" style="margin-top: 12px; width: 100%;">Log round</button>
+      </form>
+      {% else %}
+      <p style="color: var(--ink-3); font-size: 13px;">All your rounds have been assigned to this game. Go play some golf!</p>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div style="display: flex; align-items: center; justify-content: center; flex: 1;">
+    <div style="text-align: center;">
+      <div class="ey" style="margin-bottom: 12px;">You haven't joined this game yet</div>
+      <form method="POST" action="{{ url_for('minigames.join_game', id=game.id) }}">
+        <button class="btn">Join game</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
