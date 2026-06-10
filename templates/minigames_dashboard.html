@@ -115,7 +115,7 @@
       {% if active_games %}
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
         {% for g in active_games %}
-        <div class="game-card">
+        <div class="game-card" onclick="window.location.href='{{ url_for('minigames.game_detail', id=g.id) }}'" style="cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div class="ey">{{ g.game_type.replace('_', ' ') }}</div>
             <div style="display: flex; gap: 6px;">
@@ -134,7 +134,7 @@
               <span style="color: var(--ink-3);">$</span>{{ g.buy_in * g.player_count }}
             </div>
           </div>
-          <div style="margin-top: 8px;">
+          <div style="margin-top: 8px;" onclick="event.stopPropagation();">
             {% if g.host_user_id == user_id or g.id in my_game_ids %}
             <a href="{{ url_for('minigames.game_detail', id=g.id) }}" class="btn" style="font-size: 10px; padding: 6px 12px; text-decoration: none;">View</a>
             {% else %}
