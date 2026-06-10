@@ -181,8 +181,9 @@
           <span style="color: var(--ink-3);">$</span>{{ game.buy_in + max_birdies }}
           <span style="font-size: 12px; color: var(--ink-3); margin-left: 6px;">max</span>
         </div>
-        <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
-          ${{ game.buy_in }} buy-in + ${{ max_birdies }} birdie risk
+        <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.7;">
+          ${{ game.buy_in }} buy-in<br>
+          Up to ${{ max_birdies }} in birdies
         </div>
       </div>
       {% endif %}
