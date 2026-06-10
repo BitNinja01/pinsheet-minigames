@@ -25,9 +25,10 @@ def _get_games_for_user(user_id: int, db_path: Path, status: str | None = None) 
                FROM plugin_minigames_games g
                LEFT JOIN plugin_minigames_players p ON p.game_id = g.id
                WHERE g.status = ?
+               AND (g.host_user_id = ? OR g.id IN (SELECT game_id FROM plugin_minigames_players WHERE user_id = ?))
                GROUP BY g.id
                ORDER BY g.created_at DESC""",
-            (status,),
+            (status, user_id, user_id),
         ).fetchall()
     else:
         rows = db.execute(
