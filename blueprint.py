@@ -181,7 +181,7 @@ def new_game():
 
         db = sqlite3.connect(str(dbp))
         cur = db.execute(
-            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id) VALUES (?, ?, ?, ?)",
+            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status) VALUES (?, ?, ?, ?, 'active')",
             (game_type, name, buy_in, uid),
         )
         game_id = cur.lastrowid
