@@ -8,7 +8,7 @@
   gap: 24px;
   overflow: hidden;
   height: 100%;
-  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-family: var(--ps-font-mono);
   font-size: 13px;
   line-height: 1.45;
   font-variant-numeric: tabular-nums;
@@ -22,13 +22,13 @@
   --accent-dim: rgba(93,180,154,0.16);
 }
 .minigames-detail .ey {
-  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  font: 500 10px/1.45 var(--ps-font-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .minigames-detail h1 {
-  font: 400 32px/1.05 'IBM Plex Mono', monospace;
+  font: 400 32px/1.05 var(--ps-font-mono);
   margin: 4px 0 0;
   letter-spacing: -0.025em;
 }
@@ -36,7 +36,7 @@
 .minigames-detail .chip {
   display: inline-flex;
   padding: 5px 10px;
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 var(--ps-font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 1px solid var(--rule);
@@ -44,7 +44,7 @@
 }
 .minigames-detail .chip.mint { border-color: var(--accent); color: var(--accent); }
 .minigames-detail .btn {
-  font: 500 11px/1 'IBM Plex Mono', monospace;
+  font: 500 11px/1 var(--ps-font-mono);
   padding: 8px 16px;
   border: 1px solid var(--ink);
   background: var(--ink);
@@ -58,7 +58,7 @@
   color: var(--ink);
 }
 .minigames-detail .hero-num {
-  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-family: var(--ps-font-display);
   font-weight: 200;
   line-height: 0.85;
   letter-spacing: -0.04em;
@@ -88,11 +88,6 @@
   align-items: center;
   gap: 2px;
 }
-.minigames-detail .bcell .hole .pl {
-  font-size: 10px;
-  color: var(--ink-3);
-  letter-spacing: 0.08em;
-}
 .minigames-detail .bcell .checks {
   display: flex;
   gap: 6px;
@@ -105,13 +100,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 500 9px/1 'IBM Plex Mono', monospace;
+  font: 500 9px/1 var(--ps-font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .minigames-detail .bx.p { background: var(--ink); color: #131312; border-color: var(--ink); }
 .minigames-detail .bx.b { background: var(--accent); color: #131312; border-color: var(--accent); }
+.minigames-detail .bx.clickable { cursor: pointer; }
+.minigames-detail .bx.clickable:hover { border-color: var(--ink-2); }
 .minigames-detail .pbar { height: 3px; background: var(--rule); width: 100%; }
 .minigames-detail .pfill { height: 100%; background: var(--accent); }
 </style>
@@ -128,6 +125,7 @@
       <button class="btn" onclick="document.getElementById('roundPicker').style.display='block'">Log round</button>
       {% elif not is_member and game.status in ('lobby', 'active') %}
       <form method="POST" action="{{ url_for('minigames.join_game', id=game.id) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn">Join</button>
       </form>
       {% endif %}
@@ -135,14 +133,40 @@
   </div>
 
   {% if game.status == 'complete' %}
-  <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule); text-align: center;">
-    <div class="ey">Game over</div>
-    <div class="hero-num" style="font-size: 48px; margin-top: 8px; color: var(--accent);">
-      {{ game.winner_user_id }}
+  <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div class="ey">Game over</div>
+      {% set winner_name = player_states | selectattr('user_id', 'equalto', game.winner_user_id) | map(attribute='display_name') | first %}
+      <div class="hero-num" style="font-size: 48px; margin-top: 8px; color: var(--accent);">
+        {{ winner_name }}
+      </div>
+      <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
+        {{ game.game_type.replace('_', ' ') }} · {{ game.name }}
+      </div>
     </div>
-    <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
-      Winner · {% for ps in player_states %}{% if ps.user_id == game.winner_user_id %}{{ ps.display_name }}{% endif %}{% endfor %}
+    {% if prize %}
+    <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
+      <div class="ey" style="margin-bottom: 14px;">Payouts</div>
+      {% for ps in player_states %}
+      {% set amount = prize.get(ps.user_id, 0) %}
+      <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0;">
+        <div>
+          <div style="font-size: 15px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
+          {% if amount == 0 %}<div style="font-size: 11px; color: var(--ink-3);">Even</div>{% endif %}
+        </div>
+        <div class="hero-num" style="font-size: 36px; {% if amount > 0 %}color: var(--accent);{% elif amount < 0 %}color: var(--warn);{% endif %}">
+          {% if amount > 0 %}+{% endif %}${{ amount }}
+        </div>
+      </div>
+      {% endfor %}
     </div>
+    {% endif %}
+    {% if is_host %}
+    <form method="POST" action="{{ url_for('minigames.close_game', id=game.id) }}" style="margin-top: 16px; text-align: center;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn ghost" style="font-size: 10px; padding: 6px 14px;">Close game</button>
+    </form>
+    {% endif %}
   </div>
   {% endif %}
 
@@ -164,13 +188,13 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
           <div>
             <div style="font-size: 32px; font-weight: 300; letter-spacing: -0.03em;">
-              {{ my_pars }}<span style="font-size: 14px; color: var(--ink-3);">/18</span>
+              <span id="my-pars">{{ my_pars }}</span><span style="font-size: 14px; color: var(--ink-3);">/18</span>
             </div>
             <div class="ey" style="margin-top: 4px;">Pars</div>
           </div>
           <div>
             <div style="font-size: 32px; font-weight: 300; letter-spacing: -0.03em; color: var(--accent);">
-              {{ my_birdies }}<span style="font-size: 14px; color: var(--ink-3);">/18</span>
+              <span id="my-birdies">{{ my_birdies }}</span><span style="font-size: 14px; color: var(--ink-3);">/18</span>
             </div>
             <div class="ey" style="margin-top: 4px;">Birdies</div>
           </div>
@@ -180,19 +204,20 @@
       <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
         <div class="ey">Exposure</div>
         <div style="font-size: 24px; font-weight: 300; margin-top: 8px; letter-spacing: -0.02em;">
-          <span style="color: var(--ink-3);">$</span>{{ game.buy_in + 18 }}
+          <span style="color: var(--ink-3);">$</span>{{ game.buy_in + max_birdies }}
           <span style="font-size: 12px; color: var(--ink-3); margin-left: 6px;">max</span>
         </div>
-        <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
-          ${{ game.buy_in }} buy-in + $18 birdie risk
+        <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.7;">
+          ${{ game.buy_in }} buy-in<br>
+          Up to ${{ max_birdies }} in birdies
         </div>
       </div>
       {% endif %}
-      <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
-        <div class="ey">Status</div>
-        <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
-          <span class="chip mint">{{ game.status }}</span>
-          <span class="chip">{{ unassigned_rounds|length }} unassigned</span>
+
+      <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
+        <div class="ey" style="margin-bottom: 8px;">How it works</div>
+        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.6;">
+          Play rounds and cross off pars as you earn them &mdash; birdies fill in automatically. First player to par all 18 holes wins the pot. Each birdie earns $1 from every other player. Max exposure: ${{ game.buy_in + max_birdies }}.
         </div>
       </div>
     </div>
@@ -204,15 +229,14 @@
         {% for i in range(1, 19) %}
         {% set h = i|string %}
         {% set s = my_state.get('holes', {}).get(h, {'par': false, 'birdie': false}) %}
-        {% set complete = s.get('par') and s.get('birdie') %}
+        {% set complete = s.get('par') %}
         <div class="bcell"{% if complete %} style="background: var(--accent-dim);"{% endif %}>
           <div class="hole">
             <span>{{ '%02d' % i }}</span>
-            <span class="pl">p{{ hole_pars[i-1] }}</span>
           </div>
           <div class="checks">
-            <div class="bx{% if s.get('par') %} p{% endif %}">par</div>
-            <div class="bx{% if s.get('birdie') %} b{% endif %}">brd</div>
+            <div class="bx{% if s.get('par') %} p{% endif %}{% if game.status == 'active' %} clickable{% endif %}" data-hole="{{ i }}" data-type="par" data-game="{{ game.id }}">par</div>
+            <div class="bx{% if s.get('birdie') %} b{% endif %}{% if game.status == 'active' %} clickable{% endif %}" data-hole="{{ i }}" data-type="birdie" data-game="{{ game.id }}">brd</div>
           </div>
         </div>
         {% endfor %}
@@ -224,33 +248,29 @@
       <div class="ey" style="margin-bottom: 20px;">The race</div>
       <div style="display: flex; flex-direction: column;">
         {% for ps in player_states %}
-        {% set total = ps.pars + ps.birdies %}
-        <div style="display: grid; grid-template-columns: 24px 1fr 1.4fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
-          <span style="font-size: 22px; font-weight: 200; font-family: 'Barlow Condensed', sans-serif; color: var(--ink-3);">{{ loop.index }}</span>
+        {% set total = ps.pars %}
+        <div data-user-id="{{ ps.user_id }}" style="display: grid; grid-template-columns: 24px 1fr 1.8fr 50px; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
+          <span style="font-size: 22px; font-weight: 200; font-family: var(--ps-font-display); color: var(--ink-3);">{{ loop.index }}</span>
           <div>
             <div style="font-size: 13px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
-            <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}p · {{ ps.birdies }}b</div>
+            <div class="{% if ps.user_id == current_user.id %}race-stats{% endif %}" style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">{{ ps.pars }}P · {{ ps.birdies }}B</div>
           </div>
-          <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
-            <div style="width: {{ (ps.pars / 36) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
-              {% if ps.pars >= 5 %}<span style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>{% endif %}
+          {% set par_only = ps.pars - ps.birdies %}
+          <div style="height: 24px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
+            <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (par_only / 18) * 100 }}%; background: var(--ink-3); align-items: center; justify-content: center;{% if par_only == 0 %}display:none{% else %}display:flex{% endif %};">
+              <span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>
             </div>
-            <div style="width: {{ (ps.birdies / 36) * 100 }}%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
-              {% if ps.birdies >= 3 %}<span style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">{{ ps.birdies }}b</span>{% endif %}
+            <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); align-items: center; justify-content: center;{% if ps.birdies == 0 %}display:none{% else %}display:flex{% endif %};">
+              <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em; text-transform: uppercase;">
+                {% if ps.birdies >= 1 %}{{ ps.birdies }}B{% elif ps.pars >= 3 %}{{ ps.pars }}P{% endif %}
+              </span>
             </div>
           </div>
           <div style="text-align: right; font-size: 16px; font-weight: 300; letter-spacing: -0.02em;">
-            {{ total }}<span style="font-size: 11px; color: var(--ink-3);">/36</span>
+            <span class="{% if ps.user_id == current_user.id %}race-total{% endif %}">{{ total }}</span><span style="font-size: 11px; color: var(--ink-3);">/18</span>
           </div>
         </div>
         {% endfor %}
-      </div>
-
-      <div style="margin-top: auto; padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
-        <div class="ey" style="margin-bottom: 8px;">How it works</div>
-        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.6;">
-          Play rounds and cross off pars and birdies as you earn them. First to fill the card wins the pot. Each birdie earns $1 from every other player. Max exposure per player: ${{ game.buy_in + 18 }}.
-        </div>
       </div>
     </div>
   </div>
@@ -264,6 +284,7 @@
       </div>
       {% if unassigned_rounds %}
       <form method="POST" action="{{ url_for('minigames.log_round', id=game.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% for r in unassigned_rounds %}
         <label style="display: block; padding: 12px; border: 1px solid var(--rule); margin-bottom: 8px; cursor: pointer; font-size: 13px;">
           <input type="radio" name="round_date" value="{{ r.date }}" required style="margin-right: 12px;">
@@ -283,10 +304,70 @@
     <div style="text-align: center;">
       <div class="ey" style="margin-bottom: 12px;">You haven't joined this game yet</div>
       <form method="POST" action="{{ url_for('minigames.join_game', id=game.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn">Join game</button>
       </form>
     </div>
   </div>
   {% endif %}
 </div>
+
+<script>
+const CSRF_TOKEN = '{{ csrf_token() }}';
+const USER_ID = {{ current_user.id }};
+document.querySelectorAll('.bx.clickable').forEach(function(el) {
+  el.addEventListener('click', function() {
+    var hole = this.dataset.hole;
+    var type = this.dataset.type;
+    var gameId = this.dataset.game;
+    if (!hole || !type) return;
+    fetch('/minigames/' + gameId + '/toggle', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'hole_number=' + hole + '&type=' + type
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (!data.ok) return;
+      if (data.victory) { window.location.reload(); return; }
+      var cell = el.closest('.bcell');
+      var p = cell.querySelector('[data-type="par"]');
+      var b = cell.querySelector('[data-type="birdie"]');
+      p.classList.toggle('p', data.par);
+      b.classList.toggle('b', data.birdie);
+      cell.style.background = data.par ? 'var(--accent-dim)' : '';
+      var parsEl = document.getElementById('my-pars');
+      var birdiesEl = document.getElementById('my-birdies');
+      if (parsEl) parsEl.textContent = data.pars;
+      if (birdiesEl) birdiesEl.textContent = data.birdies;
+      var raceRow = document.querySelector('[data-user-id="' + USER_ID + '"]');
+      if (raceRow) {
+        var pp = data.pars, bb = data.birdies, po = pp - bb, tt = pp;
+        var s = raceRow.querySelector('.race-stats');
+        if (s) s.textContent = pp + 'P \u00b7 ' + bb + 'B';
+        var pb = raceRow.querySelector('.race-par-bar');
+        if (pb) {
+          pb.style.width = Math.max(0, (po / 18 * 100)) + '%';
+          pb.style.display = po > 0 ? 'flex' : 'none';
+        }
+        var bb2 = raceRow.querySelector('.race-birdie-bar');
+        if (bb2) {
+          bb2.style.width = (bb / 18 * 100) + '%';
+          bb2.style.display = bb > 0 ? 'flex' : 'none';
+        }
+        var pl = raceRow.querySelector('.race-par-label');
+        if (pl) {
+          pl.textContent = pp + 'p';
+          pl.style.display = (pp >= 3 && po > 0) ? '' : 'none';
+        }
+        var bl = raceRow.querySelector('.race-birdie-label');
+        if (bl) {
+          bl.textContent = bb >= 1 ? bb + 'B' : (pp >= 3 ? pp + 'P' : '');
+          bl.style.display = (bb >= 2 || (bb > 0 && pp >= 3)) ? '' : 'none';
+        }
+        var te = raceRow.querySelector('.race-total');
+        if (te) te.textContent = tt;
+      }
+    }).catch(function() {});
+  });
+});
+</script>
 {% endblock %}

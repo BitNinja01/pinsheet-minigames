@@ -3,7 +3,7 @@
 <style>
 .minigames-new {
   padding: 28px 48px 32px;
-  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-family: var(--ps-font-mono);
   font-size: 13px;
   line-height: 1.45;
   font-variant-numeric: tabular-nums;
@@ -15,19 +15,19 @@
   --warn: #d96a6a;
 }
 .minigames-new .ey {
-  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  font: 500 10px/1.45 var(--ps-font-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .minigames-new h1 {
-  font: 400 32px/1.05 'IBM Plex Mono', monospace;
+  font: 400 32px/1.05 var(--ps-font-mono);
   margin: 4px 0 0;
   letter-spacing: -0.025em;
 }
 .minigames-new h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
 .minigames-new .btn {
-  font: 500 11px/1 'IBM Plex Mono', monospace;
+  font: 500 11px/1 var(--ps-font-mono);
   padding: 8px 16px;
   border: 1px solid var(--ink);
   background: var(--ink);
@@ -42,7 +42,7 @@
 }
 .minigames-new label {
   display: block;
-  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  font: 500 10px/1.45 var(--ps-font-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -53,7 +53,7 @@
   background: transparent;
   border: 1px solid var(--rule);
   padding: 10px 12px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--ps-font-mono);
   font-size: 13px;
   color: var(--ink);
   margin-bottom: 20px;
@@ -71,6 +71,7 @@
   {% endif %}
 
   <form method="POST" style="margin-top: 28px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="name">Game name</label>
     <input type="text" id="name" name="name" placeholder="e.g. Thursday Night Crew" required>
 

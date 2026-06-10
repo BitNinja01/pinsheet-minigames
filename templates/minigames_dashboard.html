@@ -8,7 +8,7 @@
   gap: 0;
   overflow-y: auto;
   height: 100%;
-  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  font-family: var(--ps-font-mono);
   font-size: 13px;
   line-height: 1.45;
   font-variant-numeric: tabular-nums;
@@ -21,25 +21,25 @@
   --warn: #d96a6a;
 }
 .minigames-body .ey {
-  font: 500 10px/1.45 'IBM Plex Mono', monospace;
+  font: 500 10px/1.45 var(--ps-font-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .minigames-body h1 {
-  font: 400 32px/1.05 'IBM Plex Mono', monospace;
+  font: 400 32px/1.05 var(--ps-font-mono);
   margin: 4px 0 0;
   letter-spacing: -0.025em;
 }
 .minigames-body h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
 .minigames-body h2 {
-  font: 400 18px/1.2 'IBM Plex Mono', monospace;
+  font: 400 18px/1.2 var(--ps-font-mono);
   margin: 0;
 }
 .minigames-body .chip {
   display: inline-flex;
   padding: 5px 10px;
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 var(--ps-font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 1px solid var(--rule);
@@ -47,7 +47,7 @@
 }
 .minigames-body .chip.mint { border-color: var(--accent); color: var(--accent); }
 .minigames-body .btn {
-  font: 500 11px/1 'IBM Plex Mono', monospace;
+  font: 500 11px/1 var(--ps-font-mono);
   padding: 8px 16px;
   border: 1px solid var(--ink);
   background: var(--ink);
@@ -61,7 +61,7 @@
   color: var(--ink);
 }
 .minigames-body .hero-num {
-  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-family: var(--ps-font-display);
   font-weight: 200;
   line-height: 0.85;
   letter-spacing: -0.04em;
@@ -88,8 +88,7 @@
   border-bottom: 1px solid var(--rule);
 }
 .minigames-body .game-type-row:last-child { border-bottom: none; }
-a.game-card-link { text-decoration: none; color: inherit; display: block; }
-a.game-card-link:hover { text-decoration: none; }
+
 </style>
 
 <div class="minigames-body">
@@ -105,7 +104,7 @@ a.game-card-link:hover { text-decoration: none; }
 
   <div style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 36px; padding-top: 24px;">
 
-    {# Active games #}
+    {# Active games — open to join/play #}
     <div>
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
         <div style="display: flex; align-items: baseline; gap: 10px;">
@@ -116,34 +115,66 @@ a.game-card-link:hover { text-decoration: none; }
       {% if active_games %}
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
         {% for g in active_games %}
-        <a href="{{ url_for('minigames.game_detail', id=g.id) }}" class="game-card-link">
-          <div class="game-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div class="ey">{{ g.game_type.replace('_', ' ') }}</div>
-              <div style="display: flex; gap: 6px;">
-                <span class="chip mint">Active</span>
-              </div>
-            </div>
-            <div>
-              <h2>{{ g.name }}</h2>
-              <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
-                {{ g.player_count }} players{% if g.buy_in %} · ${{ g.buy_in }} buy-in{% endif %}
-              </div>
-            </div>
-            <div>
-              <div class="ey" style="margin-bottom: 4px;">Pot</div>
-              <div class="hero-num" style="font-size: 48px;">
-                <span style="color: var(--ink-3);">$</span>{{ g.buy_in * g.player_count }}
-              </div>
+        <div class="game-card" onclick="window.location.href='{{ url_for('minigames.game_detail', id=g.id) }}'" style="cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="ey">{{ g.game_type.replace('_', ' ') }}</div>
+            <div style="display: flex; gap: 6px;">
+              <span class="chip mint">{{ g.status|capitalize }}</span>
             </div>
           </div>
-        </a>
+          <div>
+            <h2>{{ g.name }}</h2>
+            <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
+              {{ g.player_count }} players{% if g.buy_in %} · ${{ g.buy_in }} buy-in{% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="ey" style="margin-bottom: 4px;">Pot</div>
+            <div class="hero-num" style="font-size: 48px;">
+              <span style="color: var(--ink-3);">$</span>{{ g.buy_in * g.player_count }}
+            </div>
+          </div>
+        </div>
         {% endfor %}
       </div>
       {% else %}
       <p style="color: var(--ink-3); font-size: 13px;">No active games. <a href="{{ url_for('minigames.new_game') }}" style="color: var(--accent);">Create one</a>.</p>
       {% endif %}
     </div>
+
+    {# Completed games — results visible until closed #}
+    {% if completed %}
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+        <div style="display: flex; align-items: baseline; gap: 10px;">
+          <div class="ey">Completed</div>
+          <span style="font-size: 11px; color: var(--ink-3);">{{ completed|length }}</span>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+        {% for g in completed %}
+        <div class="game-card" onclick="window.location.href='{{ url_for('minigames.game_detail', id=g.id) }}'" style="cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="ey">{{ g.game_type.replace('_', ' ') }}</div>
+            <span class="chip" style="border-color: var(--ink-3); color: var(--ink-3);">Complete</span>
+          </div>
+          <div>
+            <h2>{{ g.name }}</h2>
+            <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">
+              {{ g.player_count }} players{% if g.buy_in %} · ${{ g.buy_in }} buy-in{% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="ey" style="margin-bottom: 4px;">Pot</div>
+            <div class="hero-num" style="font-size: 48px;">
+              <span style="color: var(--ink-3);">$</span>{{ g.buy_in * g.player_count }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
     {# Available game types #}
     <div>
