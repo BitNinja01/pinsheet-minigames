@@ -143,6 +143,7 @@ def dashboard():
     game_types = get_available_types()
 
     db = sqlite3.connect(str(dbp))
+    db.row_factory = sqlite3.Row
     my_ids = set(r["game_id"] for r in db.execute(
         "SELECT game_id FROM plugin_minigames_players WHERE user_id = ?", (uid,)
     ).fetchall())
