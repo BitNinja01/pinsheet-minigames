@@ -145,15 +145,18 @@
       </div>
     </div>
     {% if prize %}
-    <div style="border-top: 1px solid var(--rule); padding-top: 16px;">
-      <div class="ey" style="margin-bottom: 12px;">Payouts</div>
+    <div style="border-top: 1px solid var(--rule); padding-top: 20px;">
+      <div class="ey" style="margin-bottom: 14px;">Payouts</div>
       {% for ps in player_states %}
       {% set amount = prize.get(ps.user_id, 0) %}
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px;">
-        <span style="color: var(--ink-2);">{{ ps.display_name }}</span>
-        <span style="font-weight: 500; {% if amount > 0 %}color: var(--accent);{% elif amount < 0 %}color: var(--warn);{% endif %}">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0;">
+        <div>
+          <div style="font-size: 15px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
+          {% if amount == 0 %}<div style="font-size: 11px; color: var(--ink-3);">Even</div>{% endif %}
+        </div>
+        <div class="hero-num" style="font-size: 36px; {% if amount > 0 %}color: var(--accent);{% elif amount < 0 %}color: var(--warn);{% endif %}">
           {% if amount > 0 %}+{% endif %}${{ amount }}
-        </span>
+        </div>
       </div>
       {% endfor %}
     </div>
@@ -254,18 +257,14 @@
           </div>
           {% set par_only = ps.pars - ps.birdies %}
           <div style="height: 18px; background: var(--paper-2); border: 1px solid var(--rule); display: flex; overflow: hidden;">
-            {% if par_only > 0 %}
-            <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (par_only / 18) * 100 }}%; background: var(--ink-3); display: flex; align-items: center; justify-content: center;">
-              {% if ps.pars >= 3 %}<span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>{% endif %}
+            <div class="{% if ps.user_id == current_user.id %}race-par-bar{% endif %}" style="width: {{ (par_only / 18) * 100 }}%; background: var(--ink-3); align-items: center; justify-content: center;{% if par_only == 0 %}display:none{% else %}display:flex{% endif %};">
+              <span class="{% if ps.user_id == current_user.id %}race-par-label{% endif %}" style="font-size: 8px; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase;">{{ ps.pars }}p</span>
             </div>
-            {% endif %}
-            {% if ps.birdies > 0 %}
-            <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
+            <div class="{% if ps.user_id == current_user.id %}race-birdie-bar{% endif %}" style="width: {{ (ps.birdies / 18) * 100 }}%; background: var(--accent); align-items: center; justify-content: center;{% if ps.birdies == 0 %}display:none{% else %}display:flex{% endif %};">
               <span class="{% if ps.user_id == current_user.id %}race-birdie-label{% endif %}" style="font-size: 8px; color: #131312; letter-spacing: 0.08em;">
                 {% if ps.birdies >= 2 %}{{ ps.birdies }}b{% elif ps.pars >= 3 %}{{ ps.pars }}p{% endif %}
               </span>
             </div>
-            {% endif %}
           </div>
           <div style="text-align: right; font-size: 16px; font-weight: 300; letter-spacing: -0.02em;">
             <span class="{% if ps.user_id == current_user.id %}race-total{% endif %}">{{ total }}</span><span style="font-size: 11px; color: var(--ink-3);">/18</span>
