@@ -503,11 +503,6 @@ def toggle_hole(id):
     engine = get_engine(game["game_type"])
     if engine:
         victory = engine.check_victory(game, state)
-        if victory:
-            db.execute(
-                "UPDATE plugin_minigames_games SET status = 'complete', winner_user_id = ?, completed_at = datetime('now') WHERE id = ?",
-                (uid, id),
-            )
 
     db.commit()
     db.close()

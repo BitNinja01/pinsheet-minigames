@@ -340,7 +340,7 @@ class TestToggleHole:
         assert data["birdie"] is False
         assert data["par"] is False
 
-    def test_toggle_triggers_victory_on_par(self, client, db_path, user_id):
+    def test_toggle_does_not_trigger_victory(self, client, db_path, user_id):
         holes = {str(i): {"par": True, "birdie": True} for i in range(1, 18)}
         holes["18"] = {"par": False, "birdie": False}
         db = __import__("sqlite3").connect(str(db_path))
@@ -356,7 +356,14 @@ class TestToggleHole:
 
         resp = client.post("/minigames/1/toggle", data={"hole_number": "18", "type": "par"})
         data = resp.get_json()
+        # victory flag still returned for UI indicator, but game stays active
         assert data["victory"] is True
+
+        db2 = __import__("sqlite3").connect(str(db_path))
+        db2.row_factory = __import__("sqlite3").Row
+        row = db2.execute("SELECT status FROM plugin_minigames_games WHERE id = 1").fetchone()
+        db2.close()
+        assert row["status"] == "active"
 
     def test_toggle_returns_counts(self, client, db_path, user_id):
         holes = {str(i): {"par": True if i <= 5 else False, "birdie": False} for i in range(1, 19)}
