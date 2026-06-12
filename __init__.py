@@ -8,7 +8,7 @@ log = logging.getLogger("pinsheet")
 
 plugin_info = {
     "name": "pinsheet-minigames",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Group golf minigames — Par Bingo and more",
     "author": "PinSheet",
 }
