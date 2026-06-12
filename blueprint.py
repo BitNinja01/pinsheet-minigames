@@ -298,7 +298,7 @@ def game_detail(id):
 
     prize = {}
     if game["status"] == "complete" and engine:
-        prize = engine.prize_breakdown(game, [
+        prize = engine.prize_breakdown_early(game, [
             {"user_id": ps["user_id"], "state": ps["state"]} for ps in player_states
         ])
 
@@ -445,12 +445,6 @@ def log_round(id):
             (json.dumps(new_state), id, uid),
         )
 
-        if engine.check_victory(game, new_state):
-            db.execute(
-                "UPDATE plugin_minigames_games SET status = 'complete', winner_user_id = ?, completed_at = datetime('now') WHERE id = ?",
-                (uid, id),
-            )
-
     db.commit()
     db.close()
     return redirect(url_for("minigames.game_detail", id=id))
@@ -509,11 +503,6 @@ def toggle_hole(id):
     engine = get_engine(game["game_type"])
     if engine:
         victory = engine.check_victory(game, state)
-        if victory:
-            db.execute(
-                "UPDATE plugin_minigames_games SET status = 'complete', winner_user_id = ?, completed_at = datetime('now') WHERE id = ?",
-                (uid, id),
-            )
 
     db.commit()
     db.close()
@@ -553,11 +542,103 @@ def close_game(id):
         db.close()
         return "Only the host or an admin can close a game", 403
 
-    if game["status"] != "complete":
+    if game["status"] not in ("complete", "cancelled"):
         db.close()
-        return "Only completed games can be closed", 400
+        return "Only completed or cancelled games can be closed", 400
 
     db.execute("UPDATE plugin_minigames_games SET status = 'closed' WHERE id = ?", (id,))
     db.commit()
     db.close()
     return redirect(url_for("minigames.dashboard"))
+
+
+@bp.route("/<int:id>/cancel", methods=["POST"])
+@login_required
+def cancel_game(id):
+    view_user = getattr(g, "view_user", None) or {"id": current_user.id}
+    uid = view_user["id"]
+    dbp = _db_path()
+
+    db = sqlite3.connect(str(dbp))
+    db.row_factory = sqlite3.Row
+    game_row = db.execute(
+        "SELECT * FROM plugin_minigames_games WHERE id = ?", (id,)
+    ).fetchone()
+    if not game_row:
+        db.close()
+        return "Game not found", 404
+
+    game = dict(game_row)
+    is_admin = getattr(current_user, "is_admin", False)
+    if game["host_user_id"] != uid and not is_admin:
+        db.close()
+        return "Only the host or an admin can cancel a game", 403
+
+    if game["status"] != "active":
+        db.close()
+        return "Only active games can be cancelled", 400
+
+    db.execute("UPDATE plugin_minigames_games SET status = 'cancelled' WHERE id = ?", (id,))
+    db.commit()
+    db.close()
+    return redirect(url_for("minigames.dashboard"))
+
+
+@bp.route("/<int:id>/complete", methods=["POST"])
+@login_required
+def complete_game(id):
+    view_user = getattr(g, "view_user", None) or {"id": current_user.id}
+    uid = view_user["id"]
+    dbp = _db_path()
+
+    db = sqlite3.connect(str(dbp))
+    db.row_factory = sqlite3.Row
+    game_row = db.execute(
+        "SELECT * FROM plugin_minigames_games WHERE id = ?", (id,)
+    ).fetchone()
+    if not game_row:
+        db.close()
+        return "Game not found", 404
+
+    game = dict(game_row)
+    is_admin = getattr(current_user, "is_admin", False)
+    if game["host_user_id"] != uid and not is_admin:
+        db.close()
+        return "Only the host or an admin can complete a game", 403
+
+    if game["status"] != "active":
+        db.close()
+        return "Only active games can be completed", 400
+
+    # Get all player states to determine winner
+    state_rows = db.execute(
+        """SELECT s.user_id, s.state_json
+           FROM plugin_minigames_states s
+           WHERE s.game_id = ?""",
+        (id,),
+    ).fetchall()
+
+    # Count pars for each player
+    par_counts = []
+    for row in state_rows:
+        state = json.loads(row["state_json"])
+        holes = state.get("holes", {})
+        pars = sum(1 for h in holes.values() if h.get("par"))
+        par_counts.append({"user_id": row["user_id"], "pars": pars})
+
+    # Find winner(s)
+    winner_id = None
+    if par_counts:
+        max_pars = max(pc["pars"] for pc in par_counts)
+        winners = [pc for pc in par_counts if pc["pars"] == max_pars]
+        if len(winners) == 1:
+            winner_id = winners[0]["user_id"]
+        # If tie, winner_id stays None
+
+    db.execute(
+        "UPDATE plugin_minigames_games SET status = 'complete', winner_user_id = ?, completed_at = datetime('now') WHERE id = ?",
+        (winner_id, id),
+    )
+    db.commit()
+    db.close()
+    return redirect(url_for("minigames.game_detail", id=id))

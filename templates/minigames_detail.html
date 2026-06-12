@@ -132,14 +132,40 @@
     </div>
   </div>
 
-  {% if game.status == 'complete' %}
+  {% if game.status == 'cancelled' %}
+  <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--warn);">
+    <div style="text-align: center;">
+      <div class="ey" style="color: var(--warn);">Game cancelled</div>
+      <div style="font-size: 14px; color: var(--ink-2); margin-top: 8px;">
+        No winner was declared. No payouts.
+      </div>
+    </div>
+    {% if is_host %}
+    <form method="POST" action="{{ url_for('minigames.close_game', id=game.id) }}" style="margin-top: 16px; text-align: center;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn ghost" style="font-size: 10px; padding: 6px 14px;">Remove from dashboard</button>
+    </form>
+    {% endif %}
+  </div>
+  {% elif game.status == 'complete' %}
   <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
     <div style="text-align: center; margin-bottom: 16px;">
       <div class="ey">Game over</div>
+      {% if game.winner_user_id %}
       {% set winner_name = player_states | selectattr('user_id', 'equalto', game.winner_user_id) | map(attribute='display_name') | first %}
       <div class="hero-num" style="font-size: 48px; margin-top: 8px; color: var(--accent);">
         {{ winner_name }}
       </div>
+      {% else %}
+      {% set max_pars = player_states | map(attribute='pars') | max %}
+      {% set tied = player_states | selectattr('pars', 'equalto', max_pars) | list %}
+      <div class="hero-num" style="font-size: 36px; margin-top: 8px; color: var(--accent);">
+        {{ tied | map(attribute='display_name') | join(' & ') }}
+      </div>
+      <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
+        Tied at {{ max_pars }} pars — pot split
+      </div>
+      {% endif %}
       <div style="font-size: 12px; color: var(--ink-3); margin-top: 4px;">
         {{ game.game_type.replace('_', ' ') }} · {{ game.name }}
       </div>
@@ -220,6 +246,16 @@
           Play rounds and cross off pars as you earn them &mdash; birdies fill in automatically. First player to par all 18 holes wins the pot. Each birdie earns $1 from every other player. Max exposure: ${{ game.buy_in + max_birdies }}.
         </div>
       </div>
+
+      {% if is_host and game.status == 'active' %}
+      <div style="border-top: 1px solid var(--rule); padding-top: 20px; margin-top: 8px;">
+        <div class="ey" style="margin-bottom: 12px;">Host controls</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn" onclick="showCompleteModal()">Complete game</button>
+          <button class="btn ghost" style="border-color: var(--warn); color: var(--warn);" onclick="showCancelModal()">Cancel game</button>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
     {# Center: bingo card #}
@@ -298,6 +334,46 @@
       {% endif %}
     </div>
   </div>
+
+  {# Complete game modal #}
+  <div id="completeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #131312; border: 1px solid var(--rule); padding: 32px; min-width: 400px;">
+      <div class="ey" style="margin-bottom: 16px;">Complete game</div>
+      <p style="font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-bottom: 20px;">
+        {% set leader = player_states | sort(attribute='pars', reverse=True) | first %}
+        {% set tied = player_states | selectattr('pars', 'equalto', leader.pars) | list %}
+        {% if tied | length > 1 %}
+        The pot will be split between {{ tied | map(attribute='display_name') | join(' and ') }} (tied at {{ leader.pars }} pars).
+        {% else %}
+        {{ leader.display_name }} will win with {{ leader.pars }} pars.
+        {% endif %}
+      </p>
+      <div style="display: flex; gap: 8px;">
+        <form method="POST" action="{{ url_for('minigames.complete_game', id=game.id) }}" style="flex: 1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn" type="submit" style="width: 100%;">Confirm</button>
+        </form>
+        <button class="btn ghost" onclick="hideCompleteModal()" style="flex: 1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  {# Cancel game modal #}
+  <div id="cancelModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #131312; border: 1px solid var(--rule); padding: 32px; min-width: 400px;">
+      <div class="ey" style="margin-bottom: 16px; color: var(--warn);">Cancel game</div>
+      <p style="font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-bottom: 20px;">
+        Cancel this game? No winner will be declared and no payouts will be made.
+      </p>
+      <div style="display: flex; gap: 8px;">
+        <form method="POST" action="{{ url_for('minigames.cancel_game', id=game.id) }}" style="flex: 1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn" type="submit" style="width: 100%; background: var(--warn); border-color: var(--warn);">Cancel game</button>
+        </form>
+        <button class="btn ghost" onclick="hideCancelModal()" style="flex: 1;">Go back</button>
+      </div>
+    </div>
+  </div>
   {% else %}
   <div style="display: flex; align-items: center; justify-content: center; flex: 1;">
     <div style="text-align: center;">
@@ -366,5 +442,17 @@ document.querySelectorAll('.bx.clickable').forEach(function(el) {
     }).catch(function() {});
   });
 });
+function showCompleteModal() {
+  document.getElementById('completeModal').style.display = 'flex';
+}
+function hideCompleteModal() {
+  document.getElementById('completeModal').style.display = 'none';
+}
+function showCancelModal() {
+  document.getElementById('cancelModal').style.display = 'flex';
+}
+function hideCancelModal() {
+  document.getElementById('cancelModal').style.display = 'none';
+}
 </script>
 {% endblock %}

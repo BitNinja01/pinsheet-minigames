@@ -171,3 +171,48 @@ class ParBingoEngine(GameEngine):
                 result[uid] = -buy_in - winner_birdies
 
         return result
+
+    def prize_breakdown_early(self, game: dict, player_states: list[dict]) -> dict:
+        buy_in = game.get("buy_in", 0)
+        n = len(player_states)
+        pot = buy_in * n
+
+        par_counts = []
+        for ps in player_states:
+            holes = ps["state"].get("holes", {})
+            pars = sum(1 for h in holes.values() if h.get("par"))
+            birdies = sum(1 for h in holes.values() if h.get("birdie"))
+            par_counts.append({
+                "user_id": ps["user_id"],
+                "pars": pars,
+                "birdies": birdies,
+            })
+
+        if not par_counts:
+            return {}
+
+        max_pars = max(pc["pars"] for pc in par_counts)
+        winners = [pc for pc in par_counts if pc["pars"] == max_pars]
+
+        result = {}
+        if len(winners) == 1:
+            winner = winners[0]
+            winner_birdies = winner["birdies"]
+            for pc in par_counts:
+                uid = pc["user_id"]
+                if uid == winner["user_id"]:
+                    result[uid] = (n - 1) * (buy_in + winner_birdies)
+                else:
+                    result[uid] = -buy_in - winner_birdies
+        else:
+            num_winners = len(winners)
+            winner_ids = {w["user_id"] for w in winners}
+            share = pot // num_winners
+            for pc in par_counts:
+                uid = pc["user_id"]
+                if uid in winner_ids:
+                    result[uid] = share - buy_in
+                else:
+                    result[uid] = -buy_in
+
+        return result
