@@ -176,10 +176,7 @@
       {% for ps in player_states %}
       {% set amount = prize.get(ps.user_id, 0) %}
       <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0;">
-        <div>
-          <div style="font-size: 15px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
-          {% if amount == 0 %}<div style="font-size: 11px; color: var(--ink-3);">Even</div>{% endif %}
-        </div>
+        <div style="font-size: 15px; font-weight: 400; color: var(--ink-2);">{{ ps.display_name }}</div>
         <div class="hero-num" style="font-size: 36px; {% if amount > 0 %}color: var(--accent);{% elif amount < 0 %}color: var(--warn);{% endif %}">
           {% if amount > 0 %}+{% endif %}${{ amount }}
         </div>
