@@ -362,6 +362,42 @@ class TestParBingoEnginePrizeBreakdown:
         assert result[1] > 0
 
 
+    def test_tied_winners_split_pot(self):
+        engine = ParBingoEngine()
+        # Two players tied at 10 pars each (no full victory)
+        player1_holes = {str(i): {"par": True if i <= 10 else False, "birdie": False} for i in range(1, 19)}
+        player2_holes = {str(i): {"par": True if i <= 10 else False, "birdie": False} for i in range(1, 19)}
+        player3_holes = {str(i): {"par": True if i <= 5 else False, "birdie": False} for i in range(1, 19)}
+        states = [
+            {"user_id": 1, "state": {"holes": player1_holes}},
+            {"user_id": 2, "state": {"holes": player2_holes}},
+            {"user_id": 3, "state": {"holes": player3_holes}},
+        ]
+        # 3 players, $10 buy-in, pot = $30
+        # Players 1 and 2 tie, split pot: each gets $15 - $10 = +$5
+        # Player 3 loses: -$10
+        result = engine.prize_breakdown_early({"buy_in": 10}, states)
+        assert result[1] == 5
+        assert result[2] == 5
+        assert result[3] == -10
+
+    def test_early_completion_single_winner(self):
+        engine = ParBingoEngine()
+        # Player 1 has 12 pars (3 birdies), player 2 has 8 pars
+        player1_holes = {str(i): {"par": True if i <= 12 else False, "birdie": True if i <= 3 else False} for i in range(1, 19)}
+        player2_holes = {str(i): {"par": True if i <= 8 else False, "birdie": False} for i in range(1, 19)}
+        states = [
+            {"user_id": 1, "state": {"holes": player1_holes}},
+            {"user_id": 2, "state": {"holes": player2_holes}},
+        ]
+        # 2 players, $5 buy-in, player 1 wins with 3 birdies
+        # Winner: (2-1) * (5 + 3) = 8
+        # Loser: -5 - 3 = -8
+        result = engine.prize_breakdown_early({"buy_in": 5}, states)
+        assert result[1] == 8
+        assert result[2] == -8
+
+
 class TestEngineRegistry:
     def test_register_engine_stores_class(self):
         orig = dict(_engine._engines)
