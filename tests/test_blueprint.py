@@ -206,7 +206,7 @@ class TestLogRound:
                            follow_redirects=False)
         assert resp.status_code == 302
 
-    def test_victory_on_log_triggers_win(self, client, db_path, user_id):
+    def test_victory_on_log_does_not_auto_complete(self, client, db_path, user_id):
         seed_course(db_path)
         seed_round(db_path, user_id, gross=36, handicap_index="0.0")
         client.post("/minigames/new", data={"name": "Win Test", "game_type": "par_bingo"})
@@ -216,8 +216,9 @@ class TestLogRound:
         db.row_factory = __import__("sqlite3").Row
         row = db.execute("SELECT status, winner_user_id FROM plugin_minigames_games WHERE id = 1").fetchone()
         db.close()
-        assert row["status"] == "complete"
-        assert row["winner_user_id"] == user_id
+        # Game should stay active - no auto-completion
+        assert row["status"] == "active"
+        assert row["winner_user_id"] is None
 
 
 class TestToggleHole:

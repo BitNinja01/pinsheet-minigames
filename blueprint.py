@@ -445,12 +445,6 @@ def log_round(id):
             (json.dumps(new_state), id, uid),
         )
 
-        if engine.check_victory(game, new_state):
-            db.execute(
-                "UPDATE plugin_minigames_games SET status = 'complete', winner_user_id = ?, completed_at = datetime('now') WHERE id = ?",
-                (uid, id),
-            )
-
     db.commit()
     db.close()
     return redirect(url_for("minigames.game_detail", id=id))
