@@ -327,8 +327,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% for r in unassigned_rounds %}
         <label style="display: block; padding: 12px; border: 1px solid var(--rule); margin-bottom: 8px; cursor: pointer; font-size: 13px;">
-          <input type="radio" name="round_date" value="{{ r.date }}" required style="margin-right: 12px;">
-          <input type="hidden" name="round_index" value="{{ r.round_index }}">
+          <input type="radio" name="round_key" value="{{ r.date }}|{{ r.round_index }}" required style="margin-right: 12px;">
           {{ r.label }}
         </label>
         {% endfor %}

@@ -383,8 +383,10 @@ def log_round(id):
     uid = view_user["id"]
     dbp = _db_path()
 
-    round_date = request.form.get("round_date", "")
-    round_index_str = request.form.get("round_index", "0")
+    round_key = request.form.get("round_key", "")
+    if "|" not in round_key:
+        return "Invalid round selection", 400
+    round_date, round_index_str = round_key.rsplit("|", 1)
     try:
         round_index = int(round_index_str)
     except ValueError:

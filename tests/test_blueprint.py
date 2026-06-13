@@ -170,7 +170,7 @@ class TestJoinGame:
 
 class TestLogRound:
     def test_log_round_nonexistent_game_returns_404(self, client):
-        resp = client.post("/minigames/9999/log-round", data={"round_date": "2025-01-01", "round_index": "0"})
+        resp = client.post("/minigames/9999/log-round", data={"round_key": "2025-01-01|0"})
         assert resp.status_code == 404
 
     def test_log_round_nonexistent_round_returns_404(self, client, db_path, user_id):
@@ -184,7 +184,7 @@ class TestLogRound:
                     (1, user_id, '{"holes":{}}'))
         db.commit()
         db.close()
-        resp = client.post("/minigames/1/log-round", data={"round_date": "2025-01-01", "round_index": "0"})
+        resp = client.post("/minigames/1/log-round", data={"round_key": "2025-01-01|0"})
         assert resp.status_code == 404
 
     def test_log_round_updates_state(self, client, db_path, user_id):
@@ -192,7 +192,7 @@ class TestLogRound:
         seed_round(db_path, user_id, gross=72)
         client.post("/minigames/new", data={"name": "Log Test", "game_type": "par_bingo"})
         resp = client.post("/minigames/1/log-round",
-                           data={"round_date": "2025-06-10", "round_index": "0"},
+                           data={"round_key": "2025-06-10|0"},
                            follow_redirects=False)
         assert resp.status_code == 302
 
@@ -200,9 +200,9 @@ class TestLogRound:
         seed_course(db_path)
         seed_round(db_path, user_id, gross=72)
         client.post("/minigames/new", data={"name": "Dup Log", "game_type": "par_bingo"})
-        client.post("/minigames/1/log-round", data={"round_date": "2025-06-10", "round_index": "0"})
+        client.post("/minigames/1/log-round", data={"round_key": "2025-06-10|0"})
         resp = client.post("/minigames/1/log-round",
-                           data={"round_date": "2025-06-10", "round_index": "0"},
+                           data={"round_key": "2025-06-10|0"},
                            follow_redirects=False)
         assert resp.status_code == 302
 
@@ -210,7 +210,7 @@ class TestLogRound:
         seed_course(db_path)
         seed_round(db_path, user_id, gross=36, handicap_index="0.0")
         client.post("/minigames/new", data={"name": "Win Test", "game_type": "par_bingo"})
-        client.post("/minigames/1/log-round", data={"round_date": "2025-06-10", "round_index": "0"})
+        client.post("/minigames/1/log-round", data={"round_key": "2025-06-10|0"})
 
         db = __import__("sqlite3").connect(str(db_path))
         db.row_factory = __import__("sqlite3").Row
