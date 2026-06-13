@@ -240,17 +240,7 @@
       </div>
       {% endif %}
 
-      <div style="padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
-        <div class="ey" style="margin-bottom: 12px;">How to play</div>
-        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.7;">
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Goal:</strong> Be the first to par all 18 holes on your bingo card.</p>
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Logging rounds:</strong> After playing a round, click "Log round" and select it from your history. Holes where your net score is par or better are marked automatically.</p>
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Net scoring:</strong> Your handicap strokes are applied per WHS rules based on each course's slope, rating, and hole index. Higher handicaps receive more strokes on harder holes.</p>
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Manual toggle:</strong> Click any hole's "par" or "brd" box to toggle manually. Toggling birdie ON sets both birdie and par. Toggling birdie OFF clears both. Par can only be toggled independently when birdie is OFF.</p>
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Birdies &amp; payouts:</strong> Birdies are tracked separately. When someone wins, each birdie they have earns $1 from every other player on top of the buy-in.</p>
-          <p style="margin: 0;"><strong style="color: var(--ink);">Ties:</strong> If the host ends the game with multiple players tied for most pars, the pot is split evenly among winners.</p>
-        </div>
-      </div>
+
 
       {% if is_host and game.status == 'active' %}
       <div style="border-top: 1px solid var(--rule); padding-top: 20px; margin-top: 8px;">
@@ -311,6 +301,17 @@
           </div>
         </div>
         {% endfor %}
+      </div>
+      <div style="margin-top: 24px; padding: 20px; background: var(--paper-2); border: 1px solid var(--rule);">
+        <div class="ey" style="margin-bottom: 12px;">How to play</div>
+        <div style="font-size: 12px; color: var(--ink-2); line-height: 1.7;">
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Goal:</strong> Be the first to par all 18 holes on your bingo card.</p>
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Logging rounds:</strong> After playing a round, click "Log round" and select it from your history. Holes where your net score is par or better are marked automatically.</p>
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Net scoring:</strong> Your handicap strokes are applied per WHS rules based on each course's slope, rating, and hole index. Higher handicaps receive more strokes on harder holes.</p>
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Manual toggle:</strong> Click any hole's "par" or "brd" box to toggle manually. Toggling birdie ON sets both birdie and par. Toggling birdie OFF clears both. Par can only be toggled independently when birdie is OFF.</p>
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Birdies &amp; payouts:</strong> Birdies are tracked separately. When someone wins, each birdie they have earns $1 from every other player on top of the buy-in.</p>
+          <p style="margin: 0;"><strong style="color: var(--ink);">Ties:</strong> If the host ends the game with multiple players tied for most pars, the pot is split evenly among winners.</p>
+        </div>
       </div>
     </div>
   </div>
