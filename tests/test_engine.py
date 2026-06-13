@@ -265,6 +265,57 @@ class TestParBingoEngineProcessRound:
         assert result["holes"]["1"]["par"] is False
         assert result["holes"]["2"]["par"] is True
 
+    def test_gross_scoring_ignores_handicap(self, tmp_path):
+        """With gross scoring, handicap strokes should not be applied."""
+        db_path = self._make_course_db(tmp_path)
+        engine = ParBingoEngine()
+        state = engine.create_state({})
+        # Gross 5 on par 4 is bogey even with handicap
+        round_data = {
+            "course": "Test GC",
+            "tees": "White",
+            "computed_handicap": "18.0",
+            "holes": {"1": {"gross": "5"}},
+        }
+        game = {"par_scoring": "gross", "birdie_scoring": "gross"}
+        result = engine.process_round(game, state, round_data, db_path)
+        assert result["holes"]["1"]["par"] is False
+        assert result["holes"]["1"]["birdie"] is False
+
+    def test_net_scoring_applies_handicap(self, tmp_path):
+        """With net scoring, handicap strokes turn bogey into par."""
+        db_path = self._make_course_db(tmp_path)
+        engine = ParBingoEngine()
+        state = engine.create_state({})
+        # Gross 5 on par 4 with 18 handicap = net par on hole index 1
+        round_data = {
+            "course": "Test GC",
+            "tees": "White",
+            "computed_handicap": "18.0",
+            "holes": {"1": {"gross": "5"}},
+        }
+        game = {"par_scoring": "net", "birdie_scoring": "net"}
+        result = engine.process_round(game, state, round_data, db_path)
+        assert result["holes"]["1"]["par"] is True
+        assert result["holes"]["1"]["birdie"] is False
+
+    def test_mixed_scoring_modes(self, tmp_path):
+        """Pars and birdies can use different scoring modes."""
+        db_path = self._make_course_db(tmp_path)
+        engine = ParBingoEngine()
+        state = engine.create_state({})
+        # Gross 4 on par 4 with 18 handicap = gross par, net birdie
+        round_data = {
+            "course": "Test GC",
+            "tees": "White",
+            "computed_handicap": "18.0",
+            "holes": {"1": {"gross": "4"}},
+        }
+        game = {"par_scoring": "gross", "birdie_scoring": "net"}
+        result = engine.process_round(game, state, round_data, db_path)
+        assert result["holes"]["1"]["par"] is True  # gross par
+        assert result["holes"]["1"]["birdie"] is True  # net birdie (4-1=3 < 4)
+
 
 class TestParBingoEngineCheckVictory:
     def test_empty_state_is_victory(self):

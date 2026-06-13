@@ -118,6 +118,9 @@
     <div>
       <div class="ey">{{ game.game_type.replace('_', ' ') }} · Minigames</div>
       <h1><em>{{ game.name }}</em></h1>
+      <div style="font-size: 11px; color: var(--ink-3); margin-top: 6px;">
+        Pars: {{ game.par_scoring or 'net' | capitalize }} · Birdies: {{ game.birdie_scoring or 'net' | capitalize }}
+      </div>
     </div>
     <div style="display: flex; gap: 8px;">
       <a href="{{ url_for('minigames.dashboard') }}" class="btn ghost">← Games</a>
@@ -306,8 +309,8 @@
         <div class="ey" style="margin-bottom: 12px;">How to play</div>
         <div style="font-size: 12px; color: var(--ink-2); line-height: 1.7;">
           <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Goal:</strong> Be the first to par all 18 holes on your bingo card.</p>
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Marking holes:</strong> Click "Log round" to import a round from your history — holes where your net score is par or better are marked automatically. You can also click any hole's "par" or "brd" box to toggle manually.</p>
-          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Net scoring:</strong> Your handicap strokes are applied per WHS rules based on each course's slope, rating, and hole index. Higher handicaps receive more strokes on harder holes.</p>
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Marking holes:</strong> Click "Log round" to import a round from your history — holes are marked automatically based on the game's scoring mode. You can also click any hole's "par" or "brd" box to toggle manually.</p>
+          <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Scoring mode:</strong> The host sets whether pars and birdies use gross (raw score) or net (handicap-adjusted) scoring. Net scoring applies WHS strokes based on each course's slope, rating, and hole index.</p>
           <p style="margin: 0 0 10px;"><strong style="color: var(--ink);">Birdies &amp; payouts:</strong> Birdies are tracked separately. When someone wins, each birdie they have earns $1 from every other player on top of the buy-in.</p>
           <p style="margin: 0;"><strong style="color: var(--ink);">Ties:</strong> If the host ends the game with multiple players tied for most pars, the pot is split evenly among winners.</p>
         </div>

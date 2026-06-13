@@ -90,6 +90,8 @@ class ParBingoEngine(GameEngine):
         course_name = round_data.get("course", "")
         tees_name = round_data.get("tees", "")
         hi_str = round_data.get("computed_handicap", "")
+        par_scoring = game.get("par_scoring", "net")
+        birdie_scoring = game.get("birdie_scoring", "net")
         try:
             handicap_index = float(hi_str) if hi_str else 0.0
         except ValueError:
@@ -127,11 +129,12 @@ class ParBingoEngine(GameEngine):
             hole_idx = int(hole_def.get("hole_index", 9))
 
             strokes = _strokes_received(course_handicap, hole_idx)
-            net = gross - strokes
+            par_score = gross - strokes if par_scoring == "net" else gross
+            birdie_score = gross - strokes if birdie_scoring == "net" else gross
 
-            if net <= hole_par:
+            if par_score <= hole_par:
                 holes[hole_num_str]["par"] = True
-            if net < hole_par:
+            if birdie_score < hole_par:
                 holes[hole_num_str]["birdie"] = True
 
         return {"holes": holes}

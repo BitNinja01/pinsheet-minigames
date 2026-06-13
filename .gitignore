@@ -6,6 +6,8 @@ docs/DECISIONS.md
 docs/RUNBOOK.md
 docs/superpowers/
 
+pinsheet.db
+
 # AI tool artifacts
 AGENTS.md
 .scratch/

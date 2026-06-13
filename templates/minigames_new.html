@@ -87,6 +87,31 @@
     <input type="number" id="buy_in" name="buy_in" value="0" min="0" style="width: 120px;">
     <div style="font-size: 11px; color: var(--ink-3); margin-top: -16px; margin-bottom: 20px;">Set to 0 for free games</div>
 
+    <div style="display: flex; gap: 32px; margin-bottom: 20px;">
+      <div>
+        <label>Pars scoring</label>
+        <div style="display: flex; gap: 16px; margin-top: -14px;">
+          <label style="display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-2);">
+            <input type="radio" name="par_scoring" value="gross" required style="width: auto; margin: 0;"> Gross
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-2);">
+            <input type="radio" name="par_scoring" value="net" required style="width: auto; margin: 0;"> Net
+          </label>
+        </div>
+      </div>
+      <div>
+        <label>Birdies scoring</label>
+        <div style="display: flex; gap: 16px; margin-top: -14px;">
+          <label style="display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-2);">
+            <input type="radio" name="birdie_scoring" value="gross" required style="width: auto; margin: 0;"> Gross
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-2);">
+            <input type="radio" name="birdie_scoring" value="net" required style="width: auto; margin: 0;"> Net
+          </label>
+        </div>
+      </div>
+    </div>
+
     <div style="display: flex; gap: 8px; margin-top: 8px;">
       <button type="submit" class="btn">Create game</button>
       <a href="{{ url_for('minigames.dashboard') }}" class="btn ghost">Cancel</a>

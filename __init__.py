@@ -8,7 +8,7 @@ log = logging.getLogger("pinsheet")
 
 plugin_info = {
     "name": "pinsheet-minigames",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Group golf minigames — Par Bingo and more",
     "author": "PinSheet",
 }
@@ -70,6 +70,12 @@ def register(app):
     db = sqlite3.connect(str(db_path))
     for ddl in _TABLES:
         db.execute(ddl)
+    # Migration: add scoring mode columns if missing
+    cols = {r[1] for r in db.execute("PRAGMA table_info(plugin_minigames_games)").fetchall()}
+    if "par_scoring" not in cols:
+        db.execute("ALTER TABLE plugin_minigames_games ADD COLUMN par_scoring TEXT")
+    if "birdie_scoring" not in cols:
+        db.execute("ALTER TABLE plugin_minigames_games ADD COLUMN birdie_scoring TEXT")
     db.commit()
     db.close()
 

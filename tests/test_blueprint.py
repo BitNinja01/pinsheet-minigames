@@ -2,6 +2,10 @@ import json
 
 from .conftest import seed_course, seed_round
 
+# Default game creation data with required scoring modes
+def game_data(name="Test Game", game_type="par_bingo", buy_in="0", par_scoring="gross", birdie_scoring="gross"):
+    return {"name": name, "game_type": game_type, "buy_in": buy_in, "par_scoring": par_scoring, "birdie_scoring": birdie_scoring}
+
 
 class TestDashboard:
     def test_redirects_when_not_logged_in(self, minigames_app):
@@ -26,34 +30,34 @@ class TestNewGame:
         assert b"Par Bingo" in resp.data
 
     def test_create_game_requires_name(self, client):
-        resp = client.post("/minigames/new", data={"name": "", "game_type": "par_bingo"})
+        resp = client.post("/minigames/new", data=game_data(name=""))
         assert resp.status_code == 200
         assert b"required" in resp.data
 
     def test_create_game_requires_type(self, client):
-        resp = client.post("/minigames/new", data={"name": "Test Game", "game_type": ""})
+        resp = client.post("/minigames/new", data=game_data(game_type=""))
         assert resp.status_code == 200
         assert b"required" in resp.data
 
     def test_create_game_unknown_type(self, client):
-        resp = client.post("/minigames/new", data={"name": "Test Game", "game_type": "unknown_type"})
+        resp = client.post("/minigames/new", data=game_data(game_type="unknown_type"))
         assert resp.status_code == 200
         assert b"Unknown" in resp.data
 
     def test_create_game_success(self, client):
-        resp = client.post("/minigames/new", data={"name": "Test Game", "game_type": "par_bingo", "buy_in": "5"},
+        resp = client.post("/minigames/new", data=game_data(buy_in="5"),
                            follow_redirects=False)
         assert resp.status_code == 302
         assert "/minigames/" in resp.location
 
     def test_created_game_shows_on_dashboard(self, client):
-        client.post("/minigames/new", data={"name": "My Game", "game_type": "par_bingo", "buy_in": "10"})
+        client.post("/minigames/new", data=game_data(name="My Game", buy_in="10"))
         resp = client.get("/minigames/")
         assert b"My Game" in resp.data
         assert b"10" in resp.data
 
     def test_buy_in_defaults_to_zero(self, client):
-        resp = client.post("/minigames/new", data={"name": "Free Game", "game_type": "par_bingo"},
+        resp = client.post("/minigames/new", data=game_data(name="Free Game"),
                            follow_redirects=False)
         assert resp.status_code == 302
 
@@ -64,7 +68,7 @@ class TestGameDetail:
         assert resp.status_code == 404
 
     def test_shows_game_info(self, client):
-        client.post("/minigames/new", data={"name": "Detail Test", "game_type": "par_bingo"})
+        client.post("/minigames/new", data=game_data(name="Detail Test"))
         resp = client.get("/minigames/1")
         assert resp.status_code == 200
         assert b"Detail Test" in resp.data
@@ -92,7 +96,7 @@ class TestGameDetail:
     def test_member_sees_unassigned_rounds(self, client, db_path, user_id):
         seed_course(db_path)
         seed_round(db_path, user_id)
-        client.post("/minigames/new", data={"name": "Round Test", "game_type": "par_bingo"})
+        client.post("/minigames/new", data=game_data(name="Round Test"))
         resp = client.get("/minigames/1")
         assert resp.status_code == 200
 
@@ -190,7 +194,7 @@ class TestLogRound:
     def test_log_round_updates_state(self, client, db_path, user_id):
         seed_course(db_path)
         seed_round(db_path, user_id, gross=72)
-        client.post("/minigames/new", data={"name": "Log Test", "game_type": "par_bingo"})
+        client.post("/minigames/new", data=game_data(name="Log Test"))
         resp = client.post("/minigames/1/log-round",
                            data={"round_key": "2025-06-10|0"},
                            follow_redirects=False)
@@ -199,7 +203,7 @@ class TestLogRound:
     def test_duplicate_log_redirects(self, client, db_path, user_id):
         seed_course(db_path)
         seed_round(db_path, user_id, gross=72)
-        client.post("/minigames/new", data={"name": "Dup Log", "game_type": "par_bingo"})
+        client.post("/minigames/new", data=game_data(name="Dup Log"))
         client.post("/minigames/1/log-round", data={"round_key": "2025-06-10|0"})
         resp = client.post("/minigames/1/log-round",
                            data={"round_key": "2025-06-10|0"},
@@ -209,7 +213,7 @@ class TestLogRound:
     def test_victory_on_log_does_not_auto_complete(self, client, db_path, user_id):
         seed_course(db_path)
         seed_round(db_path, user_id, gross=36, handicap_index="0.0")
-        client.post("/minigames/new", data={"name": "Win Test", "game_type": "par_bingo"})
+        client.post("/minigames/new", data=game_data(name="Win Test"))
         client.post("/minigames/1/log-round", data={"round_key": "2025-06-10|0"})
 
         db = __import__("sqlite3").connect(str(db_path))

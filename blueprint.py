@@ -176,18 +176,20 @@ def new_game():
         name = request.form.get("name", "").strip()
         game_type = request.form.get("game_type", "").strip()
         buy_in_str = request.form.get("buy_in", "0").strip()
+        par_scoring = request.form.get("par_scoring", "").strip()
+        birdie_scoring = request.form.get("birdie_scoring", "").strip()
         try:
             buy_in = int(buy_in_str) if buy_in_str else 0
         except ValueError:
             buy_in = 0
 
-        if not name or not game_type:
+        if not name or not game_type or par_scoring not in ("net", "gross") or birdie_scoring not in ("net", "gross"):
             game_types = get_available_types()
             return render_template(
                 "minigames_new.html",
                 **base_context(
                     game_types=game_types,
-                    error="Name and game type are required.",
+                    error="Name, game type, and scoring modes are required.",
                     current_page="minigames",
                 ),
             )
@@ -206,8 +208,8 @@ def new_game():
 
         db = sqlite3.connect(str(dbp))
         cur = db.execute(
-            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status) VALUES (?, ?, ?, ?, 'active')",
-            (game_type, name, buy_in, uid),
+            "INSERT INTO plugin_minigames_games (game_type, name, buy_in, host_user_id, status, par_scoring, birdie_scoring) VALUES (?, ?, ?, ?, 'active', ?, ?)",
+            (game_type, name, buy_in, uid, par_scoring, birdie_scoring),
         )
         game_id = cur.lastrowid
         db.execute(
